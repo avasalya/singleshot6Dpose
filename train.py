@@ -21,6 +21,9 @@ from region_loss import RegionLoss
 from darknet import Darknet
 from MeshPly import MeshPly
 
+import warnings
+warnings.filterwarnings("ignore")
+
 # Create new directory
 def makedirs(path):
     if not os.path.exists( path ):
@@ -50,12 +53,12 @@ def train(epoch):
 
     # Get the dataloader for training dataset
     train_loader = torch.utils.data.DataLoader(dataset.listDataset(trainlist, shape=(init_width, init_height),
-                                                            shuffle=True,
-                                                            transform=transforms.Compose([transforms.ToTensor(),]), 
-                                                            train=True, 
-                                                            seen=model.seen,
-                                                            batch_size=batch_size,
-                                                            num_workers=num_workers, bg_file_names=bg_file_names),
+                                                            	   shuffle=True,
+                                                            	   transform=transforms.Compose([transforms.ToTensor(),]), 
+                                                            	   train=True, 
+                                                            	   seen=model.seen,
+                                                            	   batch_size=batch_size,
+                                                            	   num_workers=num_workers, bg_file_names=bg_file_names),
                                                 batch_size=batch_size, shuffle=False, **kwargs)
 
     # TRAINING
@@ -173,7 +176,7 @@ def test(epoch, niter):
             boxes   = all_boxes[i]
             # For each image, get all the targets (for multiple object pose estimation, there might be more than 1 target per image)
             truths  = target[i].view(-1, 21)
-            # Get how many object are present in the scene
+            # Get how many objects are present in the scene
             num_gts = truths_length(truths)
 
             # Iterate through each ground-truth object
@@ -288,7 +291,7 @@ if __name__ == "__main__":
     testlist      = data_options['valid']
     nsamples      = file_lines(trainlist)
     gpus          = data_options['gpus']  # e.g. 0,1,2,3
-    gpus = '0'
+    gpus 		  = '0'
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
     backupdir     = data_options['backup']
@@ -338,12 +341,12 @@ if __name__ == "__main__":
     model.seen = 0
     region_loss.iter  = model.iter
     region_loss.seen  = model.seen
-    processed_batches = model.seen/batch_size
+    processed_batches = model.seen//batch_size
     init_width        = model.width
     init_height       = model.height
     test_width        = 672
     test_height       = 672
-    init_epoch        = model.seen/nsamples 
+    init_epoch        = model.seen//nsamples 
 
     # Variable to save
     training_iters          = []
@@ -365,10 +368,11 @@ if __name__ == "__main__":
     kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
 
     # Get the dataloader for test data
-    test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist, shape=(test_width, test_height),
-                                                                           shuffle=False,
-                                                                           transform=transforms.Compose([transforms.ToTensor(),]), 
-                                                                           train=False),
+    test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist, 
+    															  shape=(test_width, test_height),
+                                                                  shuffle=False,
+                                                                  transform=transforms.Compose([transforms.ToTensor(),]), 
+                                                                  train=False),
                                              batch_size=1, shuffle=False, **kwargs)
 
     # Pass the model to GPU

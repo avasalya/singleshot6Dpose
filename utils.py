@@ -484,7 +484,7 @@ def get_region_boxes(output, conf_thresh, num_classes, only_objectness=1, valida
 def get_corresponding_region_boxes(output, conf_thresh, num_classes, anchors, num_anchors, correspondingclass, only_objectness=1, validation=False):
     
     # Parameters
-    anchor_step = len(anchors)/num_anchors
+    anchor_step = len(anchors)//num_anchors
     if output.dim() == 3:
         output = output.unsqueeze(0)
     batch = output.size(0)
@@ -884,12 +884,12 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
 def read_truths(lab_path):
     if os.path.getsize(lab_path):
         truths = np.loadtxt(lab_path)
-        truths = truths.reshape(truths.size/21, 21) # to avoid single truth problem
+        truths = truths.reshape(truths.size//21, 21) # to avoid single truth problem
         return truths
     else:
         return np.array([])
 
-def read_truths_args(lab_path, min_box_scale):
+def read_truths_args(lab_path):
     truths = read_truths(lab_path)
     new_truths = []
     for i in range(truths.shape[0]):
@@ -1008,7 +1008,7 @@ def file_lines(thefilepath):
         buffer = thefile.read(8192*1024)
         if not buffer:
             break
-        count += buffer.count('\n')
+        count += buffer.count(b'\n')
     thefile.close( )
     return count
 
