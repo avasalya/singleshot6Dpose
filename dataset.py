@@ -82,7 +82,7 @@ class listDataset(Dataset):
             elif self.seen < 3000*self.batch_size:
                width = (random.randint(0,17) + 8)*self.cell_size
                self.shape = (width, width)
-            else: 
+            else:
                width = (random.randint(0,19) + 7)*self.cell_size
                self.shape = (width, width)
 
