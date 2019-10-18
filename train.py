@@ -277,10 +277,12 @@ if __name__ == "__main__":
     parser.add_argument('--datacfg', type=str, default='cfg/ape.data') # data config
     parser.add_argument('--modelcfg', type=str, default='cfg/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
-    args           = parser.parse_args()
-    datacfg        = args.datacfg
-    modelcfg       = args.modelcfg
-    initweightfile = args.initweightfile
+    parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
+    args                = parser.parse_args()
+    datacfg             = args.datacfg
+    modelcfg            = args.modelcfg
+    initweightfile      = args.initweightfile
+    pretrain_num_epochs = args.pretrain_num_epochs
 
     # Parse configuration files
     data_options  = read_data_cfg(datacfg)
@@ -330,7 +332,7 @@ if __name__ == "__main__":
 
     # Specifiy the model and the loss
     model       = Darknet(modelcfg)
-    region_loss = RegionLoss()
+    region_loss = RegionLoss(num_keypoints=9, num_classes=1, anchors=[], num_anchors=1, pretrain_num_epochs=15)
 
     # Model settings
     model.load_weights_until_last(initweightfile) 
@@ -405,4 +407,4 @@ if __name__ == "__main__":
                 logging('best model so far!')
                 logging('save weights to %s/model.weights' % (backupdir))
                 model.save_weights('%s/model.weights' % (backupdir))
-    shutil.copy2('%s/model.weights' % (backupdir), '%s/model_backup.weights' % (backupdir))
+    # shutil.copy2('%s/model.weights' % (backupdir), '%s/model_backup.weights' % (backupdir))

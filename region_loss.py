@@ -78,18 +78,19 @@ def build_targets(pred_corners, target, num_keypoints, num_anchors, num_classes,
     return nGT, nCorrect, coord_mask, conf_mask, cls_mask, txs, tys, tconf, tcls
            
 class RegionLoss(nn.Module):
-    def __init__(self, num_keypoints=9, num_classes=1, anchors=[], num_anchors=1):
+    def __init__(self, num_keypoints=9, num_classes=1, anchors=[], num_anchors=1, pretrain_num_epochs=15):
         # Define the loss layer
         super(RegionLoss, self).__init__()
-        self.num_classes    = num_classes
-        self.num_anchors    = num_anchors # for single object pose estimation, there is only 1 trivial predictor (anchor)
-        self.num_keypoints  = num_keypoints
-        self.coord_scale    = 1
-        self.noobject_scale = 1
-        self.object_scale   = 5
-        self.class_scale    = 1
-        self.thresh         = 0.6
-        self.seen           = 0
+        self.num_classes         = num_classes
+        self.num_anchors         = num_anchors # for single object pose estimation, there is only 1 trivial predictor (anchor)
+        self.num_keypoints       = num_keypoints
+        self.coord_scale         = 1
+        self.noobject_scale      = 1
+        self.object_scale        = 5
+        self.class_scale         = 1
+        self.thresh              = 0.6
+        self.seen                = 0
+        self.pretrain_num_epochs = pretrain_num_epochs
 
     def forward(self, output, target, epoch):
         # Parameters
@@ -152,7 +153,7 @@ class RegionLoss(nn.Module):
         loss_x    = np.sum(loss_xs)
         loss_y    = np.sum(loss_ys)
 
-        if epoch > 15:
+        if epoch > self.pretrain_num_epochs:
             loss  = loss_x + loss_y + loss_conf # in single object pose estimation, there is no classification loss
         else:
             # pretrain initially without confidence loss
