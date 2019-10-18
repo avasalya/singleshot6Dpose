@@ -50,7 +50,7 @@ Alternatively, you can directly go to the links above and manually download and 
 To train the model run,
 
 ```
-python train.py --datacfg [path_to_data_config_file] --modelcfg [path_to_model_config_file] --initweightfile [path_to_initialization_weights]
+python train.py --datacfg [path_to_data_config_file] --modelcfg [path_to_model_config_file] --initweightfile [path_to_initialization_weights] --pretrain_num_epochs [number_of_epochs to pretrain]
 ```
 e.g.
 ```
