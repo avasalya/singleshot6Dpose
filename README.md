@@ -60,7 +60,7 @@ if you would like to start from ImageNet initialized weights, or
 ```
 python train.py --datacfg cfg/ape.data --modelcfg cfg/yolo-pose.cfg --initweightfile backup/duck/init.weights
 ```
-if you would like to start with a pretrained model on LINEMOD, for faster convergence.
+if you would like to start with an already pretrained model on LINEMOD, for faster convergence.
 
 **[datacfg]** contains information about the training/test splits, 3D object models and camera parameters
 
