@@ -62,11 +62,11 @@ python train.py --datacfg cfg/ape.data --modelcfg cfg/yolo-pose.cfg --initweight
 ```
 if you would like to start with a pretrained model on LINEMOD, for faster convergence.
 
-[datacfg] contains information about the training/test splits, 3D object models and camera parameters
+**[datacfg]** contains information about the training/test splits, 3D object models and camera parameters
 
-[modelcfg] contains information about the network structure
+**[modelcfg]** contains information about the network structure
 
-[initweightfile] contains initialization weights.  <<darknet19_448.conv.23>> contains the network weights pretrained on ImageNet. The weights "backup/[OBJECT_NAME]/init.weights" are pretrained on LINEMOD for faster convergence. We found it effective to pretrain the model without confidence estimation first and fine-tune the network later on with confidence estimation as well. "init.weights" contain the weights of these pretrained networks. However, you can also still train the network from a more crude initialization (with weights trained on ImageNet). This usually results in a slower and sometimes slightly worse convergence. You can find in cfg/ folder the file <<darknet19_448.conv.23>> that includes the network weights pretrained on ImageNet.
+**[initweightfile]** contains initialization weights.  <<darknet19_448.conv.23>> contains the network weights pretrained on ImageNet. The weights "backup/[OBJECT_NAME]/init.weights" are pretrained on LINEMOD for faster convergence. We found it effective to pretrain the model without confidence estimation first and fine-tune the network later on with confidence estimation as well. "init.weights" contain the weights of these pretrained networks. However, you can also still train the network from a more crude initialization (with weights trained on ImageNet). This usually results in a slower and sometimes slightly worse convergence. You can find in cfg/ folder the file <<darknet19_448.conv.23>> that includes the network weights pretrained on ImageNet.
 
 At the start of the training you will see an output like this:
 
