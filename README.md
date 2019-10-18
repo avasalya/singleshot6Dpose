@@ -132,7 +132,7 @@ We train and test our models on the LINEMOD dataset using the same train/test sp
 (2) a folder containing label files  (Please refer to [this link](https://github.com/Microsoft/singleshotpose/blob/master/label_file_creation.md) for a detailed explanation on how to create labels. You could also find third-party [ObjectDatasetTools](https://github.com/F2Wang/ObjectDatasetTools) toolbox useful to create ground-truth labels for 6D object pose estimation),  
 (3) a text file containing the filenames for training images (train.txt),  
 (4) a text file containing the filenames for test images (test.txt),  
-(5) a .ply file containing the 3D object model (The unit of the object model is given in meters)
+(5) a .ply file containing the 3D object model (The unit of the object model is given in meters),
 (6) optionally, a folder containing segmentation masks (If you want to change the background of your training images to be more robust to diverse backgrounds, this would be essential for a better generalization ability),  
 
 Please also make sure to adjust the following values in the data and model configuration files according to your needs:
