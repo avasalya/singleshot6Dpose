@@ -61,30 +61,31 @@ class listDataset(Dataset):
 
         # Decide which size you are going to resize the image depending on the iteration
         if self.train and index % self.batch_size== 0:
-            if self.seen < 400*self.batch_size:
-               width = 13*self.cell_size
-               self.shape = (width, width)
-            elif self.seen < 800*self.batch_size:
-               width = (random.randint(0,7) + 13)*self.cell_size
-               self.shape = (width, width)
-            elif self.seen < 1200*self.batch_size:
-               width = (random.randint(0,9) + 12)*self.cell_size
-               self.shape = (width, width)
-            elif self.seen < 1600*self.batch_size:
-               width = (random.randint(0,11) + 11)*self.cell_size
-               self.shape = (width, width)
-            elif self.seen < 2000*self.batch_size:
-               width = (random.randint(0,13) + 10)*self.cell_size
-               self.shape = (width, width)
-            elif self.seen < 2400*self.batch_size:
-               width = (random.randint(0,15) + 9)*self.cell_size
-               self.shape = (width, width)
-            elif self.seen < 3000*self.batch_size:
-               width = (random.randint(0,17) + 8)*self.cell_size
-               self.shape = (width, width)
-            else:
-               width = (random.randint(0,19) + 7)*self.cell_size
-               self.shape = (width, width)
+            #if self.seen < 400*self.batch_size:
+            width = 13*self.cell_size
+            #    self.shape = (width, width)
+            # elif self.seen < 800*self.batch_size:
+            #    width = (random.randint(0,7) + 13)*self.cell_size
+            #    self.shape = (width, width)
+            # elif self.seen < 1200*self.batch_size:
+            #    width = (random.randint(0,9) + 12)*self.cell_size
+            #    self.shape = (width, width)
+            # # elif self.seen < 1600*self.batch_size:
+            # else:
+            #    width = (random.randint(0,11) + 11)*self.cell_size
+            #    self.shape = (width, width)
+            # elif self.seen < 2000*self.batch_size:
+            #    width = (random.randint(0,13) + 10)*self.cell_size
+            #    self.shape = (width, width)
+            # elif self.seen < 2400*self.batch_size:
+            #    width = (random.randint(0,15) + 9)*self.cell_size
+            #    self.shape = (width, width)
+            # elif self.seen < 3000*self.batch_size:
+            #    width = (random.randint(0,17) + 8)*self.cell_size
+            #    self.shape = (width, width)
+            # else:
+            #    width = (random.randint(0,19) + 7)*self.cell_size
+            #    self.shape = (width, width)
 
         if self.train:
             # If you are going to train, decide on how much data augmentation you are going to apply
