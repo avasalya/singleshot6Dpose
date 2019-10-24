@@ -17,7 +17,7 @@ from torch.autograd import Variable # Useful info about autograd: http://pytorch
 import dataset
 from utils import *    
 from cfg import parse_cfg
-from region_loss import RegionLoss
+from region_loss import RegionLoss, DistiledRegionLoss
 from darknet import Darknet
 from MeshPly import MeshPly
 
@@ -66,6 +66,8 @@ def train(epoch):
     logging('epoch %d, processed %d samples, lr %f' % (epoch, epoch * len(train_loader.dataset), lr))
     # Start training
     model.train()
+    if distiling:
+        distiling_model.eval()
     t1 = time.time()
     avg_time = torch.zeros(9)
     niter = 0
@@ -81,6 +83,8 @@ def train(epoch):
         t3 = time.time()
         # Wrap tensors in Variable class for automatic differentiation
         data, target = Variable(data), Variable(target)
+        if distiling:
+            distiled_target = distiling_model(data).data #make a distiling from distiling model
         t4 = time.time()
         # Zero the gradients before running the backward pass
         optimizer.zero_grad()
@@ -91,7 +95,10 @@ def train(epoch):
         model.seen = model.seen + data.data.size(0)
         region_loss.seen = region_loss.seen + data.data.size(0)
         # Compute loss, grow an array of losses for saving later on
-        loss = region_loss(output, target)
+        if distiling:
+            loss = region_loss(output, target, distiled_target)
+        else:
+            loss = region_loss(output, target)
         training_iters.append(epoch * math.ceil(len(train_loader.dataset) / float(batch_size) ) + niter)
         training_losses.append(convert2cpu(loss.data))
         niter += 1
@@ -280,6 +287,11 @@ def test(epoch, niter):
 
 if __name__ == "__main__":
 
+    distiling = True
+    if distiling:
+        distiling_model = Darknet('cfg/yolo-pose.cfg')
+        distiling_model.load_weights('backup/ape/model.weights')
+
     # Training settings
     datacfg       = sys.argv[1]
     cfgfile       = sys.argv[2]
@@ -295,7 +307,7 @@ if __name__ == "__main__":
     gpus 		  = '0'
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
-    backupdir     = data_options['backup']
+    backupdir     = sys.argv[4]
     diam          = float(data_options['diam'])
     vx_threshold  = diam * 0.1
     if not os.path.exists(backupdir):
@@ -379,6 +391,8 @@ if __name__ == "__main__":
     # Pass the model to GPU
     if use_cuda:
         model = model.cuda() # model = torch.nn.DataParallel(model, device_ids=[0]).cuda() # Multiple GPU parallelism
+        if distiling:
+            distiling_model = distiling_model.cuda()
 
     # Get the optimizer
     params_dict = dict(model.named_parameters())
