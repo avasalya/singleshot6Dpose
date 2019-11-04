@@ -881,6 +881,24 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
         img.save(savename)
     return img
 
+def draw_bb(image, corners):
+    image = cv2.line(image, (corners[1][0], corners[1][1]), (corners[3][0], corners[3][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[1][0], corners[1][1]), (corners[5][0], corners[5][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[7][0], corners[7][1]), (corners[3][0], corners[3][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[7][0], corners[7][1]), (corners[5][0], corners[5][1]), (0, 0, 255))
+
+    image = cv2.line(image, (corners[2][0], corners[2][1]), (corners[4][0], corners[4][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[2][0], corners[2][1]), (corners[6][0], corners[6][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[8][0], corners[8][1]), (corners[4][0], corners[4][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[8][0], corners[8][1]), (corners[6][0], corners[6][1]), (0, 0, 255))
+
+    image = cv2.line(image, (corners[1][0], corners[1][1]), (corners[2][0], corners[2][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[3][0], corners[3][1]), (corners[4][0], corners[4][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[5][0], corners[5][1]), (corners[6][0], corners[6][1]), (0, 0, 255))
+    image = cv2.line(image, (corners[7][0], corners[7][1]), (corners[8][0], corners[8][1]), (0, 0, 255))
+
+    return image
+
 def read_truths(lab_path):
     if os.path.getsize(lab_path):
         truths = np.loadtxt(lab_path)
@@ -936,6 +954,7 @@ def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=1):
         img = img.view(1, 3, height, width)
         img = img.float().div(255.0)
     elif type(img) == np.ndarray: # cv2 image
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = torch.from_numpy(img.transpose(2,0,1)).float().div(255.0).unsqueeze(0)
     else:
         print("unknow image type")
