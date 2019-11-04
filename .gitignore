@@ -332,3 +332,9 @@ ASALocalRun/
 # Datasets
 LINEMOD/*
 VOCdevkit/*
+
+launch.json
+backup/*
+multi_obj_pose_estimation/*
+cfg/*
+.vscode

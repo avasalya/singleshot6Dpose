@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from region_loss import RegionLoss
+from region_loss import RegionLoss, DistiledRegionLoss
 from cfg import *
+
+distiling = True
 
 class MaxPoolStride1(nn.Module):
     def __init__(self):
@@ -225,7 +227,10 @@ class Darknet(nn.Module):
                 out_filters.append(prev_filters)
                 models.append(model)
             elif block['type'] == 'region':
-                loss = RegionLoss()
+                if distiling:
+                    loss = DistiledRegionLoss()
+                else:
+                    loss = RegionLoss()
                 anchors = block['anchors'].split(',')
                 if anchors == ['']:
                     loss.anchors = []
