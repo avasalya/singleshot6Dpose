@@ -65,8 +65,11 @@ class Darknet(nn.Module):
         self.models = self.create_network(self.blocks) # merge conv, bn,leaky
         self.loss = self.models[len(self.models)-1]
 
-        self.width = int(self.blocks[0]['width'])
-        self.height = int(self.blocks[0]['height'])
+        self.width         = int(self.blocks[0]['width'])
+        self.height        = int(self.blocks[0]['height'])
+        self.test_width    = int(self.blocks[0]['test_width'])
+        self.test_height   = int(self.blocks[0]['test_height'])
+        self.num_keypoints = int(self.blocks[0]['num_keypoints'])
 
         if self.blocks[(len(self.blocks)-1)]['type'] == 'region':
             self.anchors = self.loss.anchors
