@@ -147,6 +147,12 @@ def print_cfg(blocks):
             out_widths.append(1)
             out_heights.append(1)
             out_filters.append(prev_filters)
+        elif block['type'] == 'upsample':
+            upsample = int(block['stride'])
+            print('%5d %-6s %d' % (ind, 'upsample', upsample))
+            out_widths.append(prev_width*upsample)
+            out_heights.append(prev_height*upsample)
+            out_filters.append(prev_filters)
         else:
             print('unknown type %s' % (block['type']))
 

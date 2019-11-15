@@ -92,7 +92,7 @@ class Darknet(nn.Module):
 
             if block['type'] == 'net':
                 continue
-            elif block['type'] == 'convolutional' or block['type'] == 'maxpool' or block['type'] == 'reorg' or block['type'] == 'avgpool' or block['type'] == 'softmax' or block['type'] == 'connected':
+            elif block['type'] == 'convolutional' or block['type'] == 'maxpool' or block['type'] == 'reorg' or block['type'] == 'avgpool' or block['type'] == 'softmax' or block['type'] == 'connected' or block['type'] == 'upsample':
                 x = self.models[ind](x)
                 outputs[ind] = x
             elif block['type'] == 'route':
@@ -248,6 +248,10 @@ class Darknet(nn.Module):
                 loss.coord_scale = float(block['coord_scale'])
                 out_filters.append(prev_filters)
                 models.append(loss)
+            elif block['type'] == 'upsample':
+                model = nn.UpsamplingNearest2d(scale_factor = int(block['stride']))
+                out_filters.append(prev_filters)
+                models.append(model)
             else:
                 print('unknown type %s' % (block['type']))
     
@@ -298,6 +302,8 @@ class Darknet(nn.Module):
                 pass
             elif block['type'] == 'cost':
                 pass
+            elif block['type'] == 'upsample':
+                pass
             else:
                 print('unknown type %s' % (block['type']))
 
@@ -313,6 +319,7 @@ class Darknet(nn.Module):
         ind = -2
         blocklen = len(self.blocks)
         for i in range(blocklen-2):
+        # for i in range(76):
             block = self.blocks[i]
             if start >= buf.size:
                 break
@@ -347,6 +354,8 @@ class Darknet(nn.Module):
             elif block['type'] == 'softmax':
                 pass
             elif block['type'] == 'cost':
+                pass
+            elif block['type'] == 'upsample':
                 pass
             else:
                 print('unknown type %s' % (block['type']))
@@ -393,6 +402,8 @@ class Darknet(nn.Module):
             elif block['type'] == 'softmax':
                 pass
             elif block['type'] == 'cost':
+                pass
+            elif block['type'] == 'upsample':
                 pass
             else:
                 print('unknown type %s' % (block['type']))

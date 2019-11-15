@@ -99,9 +99,9 @@ def train(epoch):
         region_loss.seen = region_loss.seen + data.data.size(0)
         # Compute loss, grow an array of losses for saving later on
         if distiling:
-            loss = region_loss(output, target, distiled_target)
+            loss = region_loss(output, target, distiled_target, epoch)
         else:
-            loss = region_loss(output, target)
+            loss = region_loss(output, target, epoch)
         training_iters.append(epoch * math.ceil(len(train_loader.dataset) / float(batch_size) ) + niter)
         training_losses.append(convert2cpu(loss.data))
         niter += 1
@@ -345,7 +345,10 @@ if __name__ == "__main__":
 
     # Specifiy the model and the loss
     model       = Darknet(modelcfg)
-    region_loss = RegionLoss(num_keypoints=9, num_classes=1, anchors=[], num_anchors=1, pretrain_num_epochs=15)
+    if distiling:
+        region_loss = DistiledRegionLoss(num_keypoints=9, num_classes=1, anchors=[], num_anchors=1, pretrain_num_epochs=15)
+    else:
+        region_loss = RegionLoss(num_keypoints=9, num_classes=1, anchors=[], num_anchors=1, pretrain_num_epochs=15)
 
     # Model settings
     model.load_weights_until_last(initweightfile) 
