@@ -12,6 +12,16 @@ from darknet import Darknet
 from utils import *
 from MeshPly import MeshPly
 
+import pandas as pd
+
+# Create new directory
+def makedirs(path):
+    if not os.path.exists( path ):
+        os.makedirs( path )
+
+def valid(datacfg, cfgfile, weightfile, outfile):
+    def truths_length(truths):
+        for i in range(50):
 def valid(datacfg, modelcfg, weightfile):
     def truths_length(truths, max_num_gt=50):
         for i in range(max_num_gt):
@@ -227,6 +237,30 @@ def valid(datacfg, modelcfg, weightfile):
     logging('   Acc using 5 cm 5 degree metric = {:.2f}%'.format(acc5cm5deg))
     logging("   Mean 2D pixel error is %f, Mean vertex error is %f, mean corner error is %f" % (mean_err_2d, np.mean(errs_3d), mean_corner_err_2d))
     logging('   Translation error: %f m, angle error: %f degree, pixel error: % f pix' % (testing_error_trans/nts, testing_error_angle/nts, testing_error_pixel/nts) )
+
+
+    result_data = {
+        'model': cfgfile,
+        'acc': acc,
+        'acc3d10': acc3d10,
+        'acc5cm5deg': acc5cm5deg,
+        'mean_err_2d': mean_err_2d,
+        'errs_3d': np.mean(errs_3d),
+        'mean_corner_err_2d': mean_corner_err_2d,
+        'translation_err': testing_error_trans/nts,
+        'angle_err': testing_error_angle/nts,
+        'px_err': testing_error_pixel/nts
+    }
+
+    print(result_data)
+
+    try:
+        df = pd.read_csv('test_metrics.csv')
+        df = df.append(result_data, ignore_index=True)
+        df.to_csv('test_metrics.csv', index=False)
+    except:
+        df = pd.DataFrame.from_records([result_data])
+        df.to_csv('test_metrics.csv', index=False)
 
     if save:
         predfile = backupdir + '/predictions_linemod_' + name +  '.mat'

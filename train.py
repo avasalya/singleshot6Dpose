@@ -7,6 +7,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import numpy as np
+import pandas as pd
 import os
 import random
 import math
@@ -24,11 +25,6 @@ from MeshPly import MeshPly
 
 import warnings
 warnings.filterwarnings("ignore")
-
-# Create new directory
-def makedirs(path):
-    if not os.path.exists( path ):
-        os.makedirs( path )
 
 # Adjust learning rate during training, learning schedule can be changed in network config file
 def adjust_learning_rate(optimizer, batch):
@@ -277,6 +273,7 @@ def test(epoch, niter):
     testing_errors_angle.append(testing_error_angle/(nts+eps))
     testing_errors_pixel.append(testing_error_pixel/(nts+eps))
     testing_accuracies.append(acc)
+    testing_acc3d.append(acc3d)
 
 if __name__ == "__main__":
 
@@ -290,11 +287,13 @@ if __name__ == "__main__":
     parser.add_argument('--datacfg', type=str, default='cfg/ape.data') # data config
     parser.add_argument('--modelcfg', type=str, default='cfg/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
+    parser.add_argument('--backupdir', type=str, default='backup/ape') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     args                = parser.parse_args()
     datacfg             = args.datacfg
     modelcfg            = args.modelcfg
     initweightfile      = args.initweightfile
+    backupdir           = args.backupdir
     pretrain_num_epochs = args.pretrain_num_epochs
 
     # Parse configuration files
@@ -305,7 +304,6 @@ if __name__ == "__main__":
     gpus          = data_options['gpus'] 
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
-    backupdir     = data_options['backup']
     vx_threshold  = float(data_options['diam']) * 0.1 # threshold for the ADD metric
     if not os.path.exists(backupdir):
         makedirs(backupdir)
@@ -370,6 +368,7 @@ if __name__ == "__main__":
     testing_errors_angle    = []
     testing_errors_pixel    = []
     testing_accuracies      = []
+    testing_acc3d           = []
 
     # Get the intrinsic camerea matrix, mesh, vertices and corners of the model
     mesh                 = MeshPly(meshname)
@@ -379,7 +378,7 @@ if __name__ == "__main__":
 
 
     # Specify the number of workers
-    kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'num_workers': 10, 'pin_memory': True} if use_cuda else {}
 
     # Get the dataloader for test data
     test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist, 
@@ -425,4 +424,18 @@ if __name__ == "__main__":
                 logging('best model so far!')
                 logging('save weights to %s/model.weights' % (backupdir))
                 model.save_weights('%s/model.weights' % (backupdir))
+
+                result_data = {
+                    'model': modelcfg[23:-4],
+                    'object': datacfg[14:-5],
+                    '2d_projection': testing_accuracies[-1],
+                    '3d_transformation': testing_acc3d[-1],
+                }
+    try:
+        df = pd.read_csv('test_metrics_distilling.csv')
+        df = df.append(result_data, ignore_index=True)
+        df.to_csv('test_metrics_distilling.csv', index=False)
+    except:
+        df = pd.DataFrame.from_records([result_data])
+        df.to_csv('test_metrics_distilling.csv', index=False)
     # shutil.copy2('%s/model.weights' % (backupdir), '%s/model_backup.weights' % (backupdir))
