@@ -277,10 +277,6 @@ def test(epoch, niter):
 
 if __name__ == "__main__":
 
-    distiling = True
-    if distiling:
-        distiling_model = Darknet('cfg/yolo-pose.cfg')
-        distiling_model.load_weights('backup/ape/model.weights')
 
     # Parse configuration files
     parser = argparse.ArgumentParser(description='SingleShotPose')
@@ -295,6 +291,11 @@ if __name__ == "__main__":
     initweightfile      = args.initweightfile
     backupdir           = args.backupdir
     pretrain_num_epochs = args.pretrain_num_epochs
+
+    distiling = True
+    if distiling:
+        distiling_model = Darknet('models_cfg/tekin/yolo-pose.cfg')
+        distiling_model.load_weights('./backup/%s/model.weights' %(datacfg[14:-5]))
 
     # Parse configuration files
     data_options  = read_data_cfg(datacfg)
@@ -378,7 +379,7 @@ if __name__ == "__main__":
 
 
     # Specify the number of workers
-    kwargs = {'num_workers': 10, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'num_workers': 4, 'pin_memory': True} if use_cuda else {}
 
     # Get the dataloader for test data
     test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist, 
