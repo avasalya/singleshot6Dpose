@@ -12,6 +12,10 @@ import dataset
 from utils import *
 from MeshPly import MeshPly
 
+import argparse
+
+import pandas as pd
+
 # Create new directory
 def makedirs(path):
     if not os.path.exists( path ):
@@ -90,7 +94,7 @@ def valid(datacfg, cfgfile, weightfile, outfile):
         valid_files = [item.rstrip() for item in tmp_files]
     
     # Specicy model, load pretrained weights, pass to GPU and set the module in evaluation mode
-    model = Darknet(cfgfile)
+    model = Darknet(cfgfile, distiling=distiling)
     model.print_network()
     model.load_weights(weightfile)
     model.cuda()
@@ -251,19 +255,46 @@ def valid(datacfg, cfgfile, weightfile, outfile):
     logging('   Acc using 5 cm 5 degree metric = {:.2f}%'.format(acc5cm5deg))
     logging("   Mean 2D pixel error is %f, Mean vertex error is %f, mean corner error is %f" % (mean_err_2d, np.mean(errs_3d), mean_corner_err_2d))
     logging('   Translation error: %f m, angle error: %f degree, pixel error: % f pix' % (testing_error_trans/nts, testing_error_angle/nts, testing_error_pixel/nts) )
+    
+    result_data = {
+        'model': modelcfg[23:-4],
+        'object': datacfg[14:-5],
+        '2d_projection': acc,
+        '3d_transformation': acc3d10,
+    }
+
+    csv_output_name = 'valid_metrics_distilling.csv' if distiling else 'valid_metrics.csv'
+
+    try:
+        df = pd.read_csv(csv_output_name)
+        df = df.append(result_data, ignore_index=True)
+        df.to_csv(csv_output_name, index=False)
+    except:
+        df = pd.DataFrame.from_records([result_data])
+        df.to_csv(csv_output_name, index=False)
+        # shutil.copy2('%s/model.weights' % (backupdir), '%s/model_backup.weights' % (backupdir))
 
     if save:
         predfile = backupdir + '/predictions_linemod_' + name +  '.mat'
         scipy.io.savemat(predfile, {'R_gts': gts_rot, 't_gts':gts_trans, 'corner_gts': gts_corners2D, 'R_prs': preds_rot, 't_prs':preds_trans, 'corner_prs': preds_corners2D})
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) == 4:
-        datacfg = sys.argv[1]
-        cfgfile = sys.argv[2]
-        weightfile = sys.argv[3]
-        outfile = 'comp4_det_test_'
-        valid(datacfg, cfgfile, weightfile, outfile)
-    else:
-        print('Usage:')
-        print(' python valid.py datacfg cfgfile weightfile')
+    parser = argparse.ArgumentParser(description='SingleShotPose')
+    parser.add_argument('--datacfg', type=str, default='cfg/ape.data') # data config
+    parser.add_argument('--modelcfg', type=str, default='cfg/yolo-pose.cfg') # network config
+    parser.add_argument('--weightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
+    parser.add_argument('--backupdir', type=str, default='backup/ape') # model backup path
+    parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
+    parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
+    args                = parser.parse_args()
+    datacfg             = args.datacfg
+    modelcfg            = args.modelcfg
+    weightfile          = args.weightfile
+    backupdir           = args.backupdir
+    pretrain_num_epochs = args.pretrain_num_epochs
+    backupdir           = args.backupdir
+    distiling           = bool(args.distiled)
+
+
+    outfile = 'comp4_det_test_'
+    valid(datacfg, modelcfg, weightfile, outfile)

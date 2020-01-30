@@ -7,10 +7,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import numpy as np
+import pandas as pd
 import os
 import random
 import math
 import shutil
+import argparse
 from torchvision import datasets, transforms
 from torch.autograd import Variable # Useful info about autograd: http://pytorch.org/docs/master/notes/autograd.html
 
@@ -284,22 +286,35 @@ def test(epoch, niter):
     testing_errors_angle.append(testing_error_angle/(nts+eps))
     testing_errors_pixel.append(testing_error_pixel/(nts+eps))
     testing_accuracies.append(acc)
+    testing_acc3d.append(acc3d)
 
 if __name__ == "__main__":
 
-    distiling = True
-    if distiling:
-        distiling_model = Darknet('cfg/yolo-pose.cfg')
-        distiling_model.load_weights('backup/ape/model.weights')
 
     # Training settings
-    datacfg       = sys.argv[1]
-    cfgfile       = sys.argv[2]
-    weightfile    = sys.argv[3]
+    parser = argparse.ArgumentParser(description='SingleShotPose')
+    parser.add_argument('--datacfg', type=str, default='cfg/ape.data') # data config
+    parser.add_argument('--modelcfg', type=str, default='cfg/yolo-pose.cfg') # network config
+    parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
+    parser.add_argument('--backupdir', type=str, default='backup/ape') # model backup path
+    parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
+    parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
+    args                = parser.parse_args()
+    datacfg             = args.datacfg
+    modelcfg            = args.modelcfg
+    initweightfile      = args.initweightfile
+    backupdir           = args.backupdir
+    pretrain_num_epochs = args.pretrain_num_epochs
+    backupdir           = args.backupdir
+    distiling           = bool(args.distiled)
+
+    if distiling:
+        distiling_model = Darknet('./models_cfg/tekin/yolo-pose.cfg')
+        distiling_model.load_weights('./backup/%s/model_backup.weights' %(datacfg[14:-5]))
 
     # Parse configuration files
     data_options  = read_data_cfg(datacfg)
-    net_options   = parse_cfg(cfgfile)[0]
+    net_options   = parse_cfg(modelcfg)[0]
     trainlist     = data_options['train']
     testlist      = data_options['valid']
     nsamples      = file_lines(trainlist)
@@ -307,7 +322,6 @@ if __name__ == "__main__":
     gpus 		  = '0'
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
-    backupdir     = sys.argv[4]
     diam          = float(data_options['diam'])
     vx_threshold  = diam * 0.1
     if not os.path.exists(backupdir):
@@ -322,7 +336,7 @@ if __name__ == "__main__":
     bg_file_names = get_all_files('VOCdevkit/VOC2012/JPEGImages')
 
     # Train parameters
-    max_epochs    = 700 # max_batches*batch_size/nsamples+1
+    max_epochs    = 500 # max_batches*batch_size/nsamples+1
     use_cuda      = True
     seed          = int(time.time())
     eps           = 1e-5
@@ -344,12 +358,12 @@ if __name__ == "__main__":
         torch.cuda.manual_seed(seed)
 
     # Specifiy the model and the loss
-    model       = Darknet(cfgfile)
+    model       = Darknet(modelcfg, distiling=distiling)
     region_loss = model.loss
 
     # Model settings
     # model.load_weights(weightfile)
-    model.load_weights_until_last(weightfile) 
+    model.load_weights_until_last(initweightfile) 
     model.print_network()
     model.seen = 0
     region_loss.iter  = model.iter
@@ -370,6 +384,7 @@ if __name__ == "__main__":
     testing_errors_angle    = []
     testing_errors_pixel    = []
     testing_accuracies      = []
+    testing_acc3d           = []
 
     # Get the intrinsic camerea matrix, mesh, vertices and corners of the model
     mesh                 = MeshPly(meshname)
@@ -429,4 +444,21 @@ if __name__ == "__main__":
                     logging('best model so far!')
                     logging('save weights to %s/model.weights' % (backupdir))
                     model.save_weights('%s/model.weights' % (backupdir))
-        shutil.copy2('%s/model.weights' % (backupdir), '%s/model_backup.weights' % (backupdir))
+
+                    result_data = {
+                        'model': modelcfg[23:-4],
+                        'object': datacfg[14:-5],
+                        '2d_projection': testing_accuracies[-1],
+                        '3d_transformation': testing_acc3d[-1],
+                    }
+    
+    csv_output_name = 'test_metrics_distilling.csv' if distiling else 'test_metrics.csv'
+
+    try:
+        df = pd.read_csv(csv_output_name)
+        df = df.append(result_data, ignore_index=True)
+        df.to_csv(csv_output_name, index=False)
+    except:
+        df = pd.DataFrame.from_records([result_data])
+        df.to_csv(csv_output_name, index=False)
+        # shutil.copy2('%s/model.weights' % (backupdir), '%s/model_backup.weights' % (backupdir))
