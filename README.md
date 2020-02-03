@@ -1,33 +1,20 @@
 # SINGLESHOTPOSE
  
-This is the development version of the code for the following paper:
-
-Bugra Tekin, Sudipta N. Sinha and Pascal Fua, "Real-Time Seamless Single Shot 6D Object Pose Prediction", CVPR 2018. 
-
-The original repository for the codebase for the above paper can be found in the following [link](https://github.com/Microsoft/singleshotpose/).
+This work is a modification of the original forked work to add other architectures and Knowledge Distillation.
 
 ### Introduction
 
-We propose a single-shot approach for simultaneously detecting an object in an RGB image and predicting its 6D pose without requiring multiple stages or having to examine multiple hypotheses. The key component of our method is a new CNN architecture inspired by the YOLO network design that directly predicts the 2D image locations of the projected vertices of the object's 3D bounding box. The object's 6D pose is then estimated using a PnP algorithm. [Paper](http://openaccess.thecvf.com/content_cvpr_2018/papers/Tekin_Real-Time_Seamless_Single_CVPR_2018_paper.pdf), [arXiv](https://arxiv.org/abs/1711.08848)
+For further questions, consult the original work where it is described in more detail.
 
-![SingleShotPose](https://btekin.github.io/single_shot_pose.png)
-
-#### Citation
-If you use this code, please cite the following
-> @inproceedings{tekin18,  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TITLE = {{Real-Time Seamless Single Shot 6D Object Pose Prediction}}, 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AUTHOR = {Tekin, Bugra and Sinha, Sudipta N. and Fua, Pascal},  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BOOKTITLE =  {CVPR},  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;YEAR = {2018}  
-}
+To add Knowledge Distillation to training, change the Distillation flag to true in the training code (train.py) and in the Darknet code (darknet.py).
 
 ### License
 
-SingleShotPose is released under the MIT License (refer to the LICENSE file for details).
+[MIT](https://choosealicense.com/licenses/mit/)
 
 #### Environment and dependencies
 
-The code is tested on Linux with CUDA v8 and cudNN v5.1. The implementation is based on PyTorch 0.4.1 and tested on Python3.6. The code requires the following dependencies that could be installed with conda or pip: numpy, scipy, PIL, opencv-python.  
+The code is tested on Linux with CUDA v10. The implementation is based on PyTorch 1.2 and tested on Python3.7. The code requires the following dependencies that could be installed with conda or pip: numpy, scipy, PIL, opencv-python.  
 
 #### Downloading and preparing the data
 
@@ -46,6 +33,8 @@ tar xf VOCtrainval_11-May-2012.tar
 Alternatively, you can directly go to the links above and manually download and extract the files at the corresponding directories. The whole download process might take a long while (~60 minutes). Please also be aware that access to OneDrive in some countries might be limited.
 
 #### Training the model
+
+To add Knowledge Distillation to training, change the Distillation flag to true in the training code (train.py) and in the Darknet code (darknet.py).
 
 To train the model run,
 
@@ -96,30 +85,6 @@ python valid.py --datacfg cfg/ape.data --modelcfg cfg/yolo-pose.cfg --weightfile
 ```
 
 You could also use valid.ipynb to test the model and visualize the results.
-
-#### Multi-object pose estimation on the OCCLUSION dataset
-
-Inside multi_obj_pose_estimation/ folder
-
-Testing:
-
-```
-python valid_multi.py cfgfile weightfile
-```
-e.g.
-```
-python valid_multi.py cfg/yolo-pose-multi.cfg backup_multi/model_backup.weights
-```
-
-Training:
-
-```
-python train_multi.py datafile cfgfile weightfile
-```
-e.g.,
-```
-python train_multi.py cfg/occlusion.data cfg/yolo-pose-multi.cfg backup_multi/init.weights
-```
 
 #### Label files
 
