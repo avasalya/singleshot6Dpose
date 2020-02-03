@@ -112,12 +112,3 @@ Please also make sure to adjust the following values in the data and model confi
 - You should further change the image size and camera parameters (fx, fy, u0, v0, width, height) in the data configuration files with the ones specific to your dataset. 
 
 While creating a training dataset, sampling a large number of viewpoints/distances and modeling a large variability of illumination/occlusion/background settings would be important in increasing the generalization ability of the approach on your dataset. If you would like to adjust some model & loss parameters (e.g. weighthing factor for different loss terms) for your own purposes, you could do so in the model configuration file (yolo-pose.cfg).
-
-
-#### Acknowledgments
-
-The code is written by [Bugra Tekin](http://bugratekin.info) and is built on the YOLOv2 implementation of the github user [@marvis](https://github.com/marvis)
-
-#### Contact
-
-For any questions or bug reports, please contact [Bugra Tekin](http://bugratekin.info)
