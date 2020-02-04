@@ -1,4 +1,4 @@
-# SINGLESHOTPOSE
+# Squeezed Deep 6DoF Object Detection Using Knowledge Distillation
  
 This work is a modification of the original forked work to add other architectures and Knowledge Distillation.
 
