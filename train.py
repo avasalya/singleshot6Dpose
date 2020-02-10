@@ -26,11 +26,6 @@ from MeshPly import MeshPly
 import warnings
 warnings.filterwarnings("ignore")
 
-# Create new directory
-def makedirs(path):
-    if not os.path.exists( path ):
-        os.makedirs( path )
-
 # Adjust learning rate during training, learning schedule can be changed in network config file
 def adjust_learning_rate(optimizer, batch):
     lr = learning_rate
@@ -54,13 +49,15 @@ def train(epoch):
     t0 = time.time()
 
     # Get the dataloader for training dataset
-    train_loader = torch.utils.data.DataLoader(dataset.listDataset(trainlist, shape=(init_width, init_height),
+    train_loader = torch.utils.data.DataLoader(dataset.listDataset(trainlist, 
+                                                                   shape=(init_width, init_height),
                                                             	   shuffle=True,
                                                             	   transform=transforms.Compose([transforms.ToTensor(),]), 
                                                             	   train=True, 
                                                             	   seen=model.seen,
                                                             	   batch_size=batch_size,
-                                                            	   num_workers=num_workers, bg_file_names=bg_file_names),
+                                                            	   num_workers=num_workers, 
+                                                                   bg_file_names=bg_file_names),
                                                 batch_size=batch_size, shuffle=False, **kwargs)
 
     # TRAINING
@@ -98,9 +95,9 @@ def train(epoch):
         region_loss.seen = region_loss.seen + data.data.size(0)
         # Compute loss, grow an array of losses for saving later on
         if distiling:
-            loss = region_loss(output, target, distiled_target)
+            loss = region_loss(output, target, distiled_target, epoch)
         else:
-            loss = region_loss(output, target)
+            loss = region_loss(output, target, epoch)
         training_iters.append(epoch * math.ceil(len(train_loader.dataset) / float(batch_size) ) + niter)
         training_losses.append(convert2cpu(loss.data))
         niter += 1
@@ -159,7 +156,6 @@ def test(epoch, niter):
     errs_trans           = []
     errs_angle           = []
     errs_corner2D        = []
-
     logging("   Testing...")
     logging("   Number of test samples: %d" % len(test_loader.dataset))
     notpredicted = 0
@@ -178,34 +174,25 @@ def test(epoch, niter):
             output = model(data).data  
         t3 = time.time()
         # Using confidence threshold, eliminate low-confidence predictions
-        all_boxes = get_region_boxes(output, conf_thresh, num_classes, anchors, num_anchors)        
+        all_boxes = get_region_boxes(output, num_classes, num_keypoints)        
         t4 = time.time()
         # Iterate through all batch elements
-        for i in range(output.size(0)):
-            # For each image, get all the predictions
-            boxes   = all_boxes[i]
+        for box_pr, target in zip([all_boxes], [target[0]]):
             # For each image, get all the targets (for multiple object pose estimation, there might be more than 1 target per image)
-            truths  = target[i].view(-1, 21)
+            truths = target.view(-1, num_keypoints*2+3)
             # Get how many objects are present in the scene
-            num_gts = truths_length(truths)
-
+            num_gts    = truths_length(truths)
             # Iterate through each ground-truth object
             for k in range(num_gts):
-                box_gt        = [truths[k][1], truths[k][2], truths[k][3], truths[k][4], truths[k][5], truths[k][6], 
-                                truths[k][7], truths[k][8], truths[k][9], truths[k][10], truths[k][11], truths[k][12], 
-                                truths[k][13], truths[k][14], truths[k][15], truths[k][16], truths[k][17], truths[k][18], 1.0, 1.0, truths[k][0]]
-                best_conf_est = -1
-
-                # If the prediction has the highest confidence, choose it as our prediction
-                for j in range(len(boxes)):
-                    if boxes[j][18] > best_conf_est:
-                        best_conf_est = boxes[j][18]
-                        box_pr        = boxes[j]
-                        match         = corner_confidence9(box_gt[:18], torch.FloatTensor(boxes[j][:18]))
-
+                box_gt = list()
+                for j in range(1, 2*num_keypoints+1):
+                    box_gt.append(truths[k][j])
+                box_gt.extend([1.0, 1.0])
+                box_gt.append(truths[k][0])
+                   
                 # Denormalize the corner predictions 
-                corners2D_gt = np.array(np.reshape(box_gt[:18], [9, 2]), dtype='float32')
-                corners2D_pr = np.array(np.reshape(box_pr[:18], [9, 2]), dtype='float32')
+                corners2D_gt = np.array(np.reshape(box_gt[:num_keypoints*2], [num_keypoints, 2]), dtype='float32')
+                corners2D_pr = np.array(np.reshape(box_pr[:num_keypoints*2], [num_keypoints, 2]), dtype='float32')
                 corners2D_gt[:, 0] = corners2D_gt[:, 0] * im_width
                 corners2D_gt[:, 1] = corners2D_gt[:, 1] * im_height               
                 corners2D_pr[:, 0] = corners2D_pr[:, 0] * im_width
@@ -221,7 +208,6 @@ def test(epoch, niter):
                 R_pr, t_pr = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D[:3, :]), axis=1)), dtype='float32'),  corners2D_pr, np.array(internal_calibration, dtype='float32'))
 
                 # Compute errors
-
                 # Compute translation error
                 trans_dist   = np.sqrt(np.sum(np.square(t_gt - t_pr)))
                 errs_trans.append(trans_dist)
@@ -255,12 +241,13 @@ def test(epoch, niter):
         t5 = time.time()
 
     # Compute 2D projection, 6D pose and 5cm5degree scores
-    px_threshold = 5
-    acc = len(np.where(np.array(errs_2d) <= px_threshold)[0]) * 100. / (len(errs_2d)+eps)
-    acc3d = len(np.where(np.array(errs_3d) <= vx_threshold)[0]) * 100. / (len(errs_3d)+eps)
-    acc5cm5deg = len(np.where((np.array(errs_trans) <= 0.05) & (np.array(errs_angle) <= 5))[0]) * 100. / (len(errs_trans)+eps)
-    corner_acc = len(np.where(np.array(errs_corner2D) <= px_threshold)[0]) * 100. / (len(errs_corner2D)+eps)
-    mean_err_2d = np.mean(errs_2d)
+    px_threshold = 5 # 5 pixel threshold for 2D reprojection error is standard in recent sota 6D object pose estimation works 
+    eps          = 1e-5
+    acc          = len(np.where(np.array(errs_2d) <= px_threshold)[0]) * 100. / (len(errs_2d)+eps)
+    acc3d        = len(np.where(np.array(errs_3d) <= vx_threshold)[0]) * 100. / (len(errs_3d)+eps)
+    acc5cm5deg   = len(np.where((np.array(errs_trans) <= 0.05) & (np.array(errs_angle) <= 5))[0]) * 100. / (len(errs_trans)+eps)
+    corner_acc   = len(np.where(np.array(errs_corner2D) <= px_threshold)[0]) * 100. / (len(errs_corner2D)+eps)
+    mean_err_2d  = np.mean(errs_2d)
     mean_corner_err_2d = np.mean(errs_corner2D)
     nts = float(testing_samples)
     
@@ -317,13 +304,12 @@ if __name__ == "__main__":
     net_options   = parse_cfg(modelcfg)[0]
     trainlist     = data_options['train']
     testlist      = data_options['valid']
-    nsamples      = file_lines(trainlist)
-    gpus          = data_options['gpus']  # e.g. 0,1,2,3
-    gpus 		  = '0'
+    gpus          = data_options['gpus'] 
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
     diam          = float(data_options['diam'])
     vx_threshold  = diam * 0.1
+
     if not os.path.exists(backupdir):
         makedirs(backupdir)
     batch_size    = int(net_options['batch'])
@@ -331,7 +317,10 @@ if __name__ == "__main__":
     learning_rate = float(net_options['learning_rate'])
     momentum      = float(net_options['momentum'])
     decay         = float(net_options['decay'])
-    steps         = [float(step) for step in net_options['steps'].split(',')]
+    nsamples      = file_lines(trainlist)
+    batch_size    = int(net_options['batch'])
+    nbatches      = nsamples / batch_size
+    steps         = [float(step)*nbatches for step in net_options['steps'].split(',')]
     scales        = [float(scale) for scale in net_options['scales'].split(',')]
     bg_file_names = get_all_files('VOCdevkit/VOC2012/JPEGImages')
 
@@ -345,13 +334,18 @@ if __name__ == "__main__":
     best_acc      = -1 
 
     # Test parameters
-    conf_thresh   = 0.1
-    nms_thresh    = 0.4
-    iou_thresh    = 0.5
-    im_width      = 640
-    im_height     = 480 
+    im_width    = int(data_options['width'])
+    im_height   = int(data_options['height'])
+    fx          = float(data_options['fx'])
+    fy          = float(data_options['fy'])
+    u0          = float(data_options['u0'])
+    v0          = float(data_options['v0'])
+    test_width  = int(net_options['test_width'])
+    test_height = int(net_options['test_height'])
 
     # Specify which gpus to use
+    use_cuda      = True
+    seed          = int(time.time())
     torch.manual_seed(seed)
     if use_cuda:
         os.environ['CUDA_VISIBLE_DEVICES'] = gpus
@@ -363,6 +357,7 @@ if __name__ == "__main__":
 
     # Model settings
     # model.load_weights(weightfile)
+
     model.load_weights_until_last(initweightfile) 
     model.print_network()
     model.seen = 0
@@ -371,8 +366,6 @@ if __name__ == "__main__":
     processed_batches = model.seen//batch_size
     init_width        = model.width
     init_height       = model.height
-    test_width        = 672
-    test_height       = 672
     init_epoch        = model.seen//nsamples 
 
     # Variable to save
@@ -390,10 +383,11 @@ if __name__ == "__main__":
     mesh                 = MeshPly(meshname)
     vertices             = np.c_[np.array(mesh.vertices), np.ones((len(mesh.vertices), 1))].transpose()
     corners3D            = get_3D_corners(vertices)
-    internal_calibration = get_camera_intrinsic()
+    internal_calibration = get_camera_intrinsic(u0, v0, fx, fy)
+
 
     # Specify the number of workers
-    kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
+    kwargs = {'num_workers': 4, 'pin_memory': True} if use_cuda else {}
 
     # Get the dataloader for test data
     test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist, 
@@ -418,7 +412,6 @@ if __name__ == "__main__":
         else:
             params += [{'params': [value], 'weight_decay': decay*batch_size}]
     optimizer = optim.SGD(model.parameters(), lr=learning_rate/batch_size, momentum=momentum, dampening=0, weight_decay=decay*batch_size)
-    # optimizer = optim.Adam(model.parameters(), lr=0.001) # Adam optimization
 
     evaluate = False
     if evaluate:
