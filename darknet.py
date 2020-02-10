@@ -5,8 +5,6 @@ import numpy as np
 from region_loss import RegionLoss, DistiledRegionLoss
 from cfg import *
 
-distiling = True
-
 class MaxPoolStride1(nn.Module):
     def __init__(self):
         super(MaxPoolStride1, self).__init__()
@@ -59,9 +57,10 @@ class EmptyModule(nn.Module):
 
 # support route shortcut and reorg
 class Darknet(nn.Module):
-    def __init__(self, cfgfile):
+    def __init__(self, cfgfile, distiling=False):
         super(Darknet, self).__init__()
         self.blocks = parse_cfg(cfgfile)
+        self.distiling = distiling
         self.models = self.create_network(self.blocks) # merge conv, bn,leaky
         self.loss = self.models[len(self.models)-1]
 
@@ -230,7 +229,7 @@ class Darknet(nn.Module):
                 out_filters.append(prev_filters)
                 models.append(model)
             elif block['type'] == 'region':
-                if distiling:
+                if self.distiling:
                     loss = DistiledRegionLoss()
                 else:
                     loss = RegionLoss()
