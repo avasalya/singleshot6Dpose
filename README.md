@@ -10,6 +10,9 @@ For further questions, consult the original work where it is described in more d
 
 To add Knowledge Distillation to training, change the Distillation flag to true in the training code (train.py) and in the Darknet code (darknet.py).
 
+The results obteined to 2D Reprojection metric are:
+![Tabela](https://drive.google.com/file/d/1JarpA3X7iVIVxC4bN-lbliGlZeZNbJOg/view?usp=sharing)
+
 ### License
 
 [MIT](https://choosealicense.com/licenses/mit/)
