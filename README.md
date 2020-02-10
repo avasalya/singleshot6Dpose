@@ -1,6 +1,8 @@
 # Squeezed Deep 6DoF Object Detection Using Knowledge Distillation
  
 This work is a modification of the original forked work to add other architectures and Knowledge Distillation.
+The architectures used to change the YOLOv2 of the original work was YOLO-LITE and Tiny-YOLO.
+The weights to YOLO-LITE can be downloaded [here](https://drive.google.com/drive/folders/1FsWjgrqzgwHlQCmApwvnUKOVS-bjatDZ?usp=sharing)
 
 ### Introduction
 
