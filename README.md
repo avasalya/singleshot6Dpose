@@ -50,11 +50,7 @@ e.g.
 ```
 python train.py --datacfg cfg/ape.data --modelcfg cfg/yolo-pose.cfg --initweightfile cfg/darknet19_448.conv.23 --pretrain_num_epochs 15
 ```
-if you would like to start from ImageNet initialized weights, or  
-```
-python train.py --datacfg cfg/ape.data --modelcfg cfg/yolo-pose.cfg --initweightfile backup/duck/init.weights
-```
-if you would like to start with an already pretrained model on LINEMOD, for faster convergence.
+Start with an already pretrained model on LINEMOD, for faster convergence.
 
 **[datacfg]** contains information about the training/test splits, 3D object models and camera parameters
 
@@ -98,22 +94,3 @@ Our label files consist of 21 ground-truth values. We predict 9 points correspon
 Respectively, 21 numbers correspond to the following: 1st number: class label, 2nd number: x0 (x-coordinate of the centroid), 3rd number: y0 (y-coordinate of the centroid), 4th number: x1 (x-coordinate of the first corner), 5th number: y1 (y-coordinate of the first corner), ..., 18th number: x8 (x-coordinate of the eighth corner), 19th number: y8 (y-coordinate of the eighth corner), 20th number: x range, 21st number: y range.
  
 The coordinates are normalized by the image width and height: x / image_width and y / image_height. This is useful to have similar output ranges for the coordinate regression and object classification tasks. 
-
-#### Tips for training on your own dataset
-
-We train and test our models on the LINEMOD dataset using the same train/test splits with [the BB8 method](https://arxiv.org/pdf/1703.10896.pdf) to validate our approach. If you would like to train a model on your own dataset, you could create the same folder structure with the provided LINEMOD dataset and adjust the paths in cfg/[OBJECT].data, [DATASET]/[OBJECT]/train.txt and [DATASET]/[OBJECT]/test.txt files. The folder for each object should contain the following: 
-
-(1) a folder containing image files,  
-(2) a folder containing label files  (Please refer to [this link](https://github.com/Microsoft/singleshotpose/blob/master/label_file_creation.md) for a detailed explanation on how to create labels. You could also find third-party [ObjectDatasetTools](https://github.com/F2Wang/ObjectDatasetTools) toolbox useful to create ground-truth labels for 6D object pose estimation),  
-(3) a text file containing the filenames for training images (train.txt),  
-(4) a text file containing the filenames for test images (test.txt),  
-(5) a .ply file containing the 3D object model (The unit of the object model is given in meters),  
-(6) optionally, a folder containing segmentation masks (If you want to change the background of your training images to be more robust to diverse backgrounds, this would be essential for a better generalization ability),  
-
-Please also make sure to adjust the following values in the data and model configuration files according to your needs:
-- You should change the "diam" value in the data configuration file with the diameter of the object model at hand. 
-- Depending on the size and variability of your training data, the learning rate schedule (steps, scales, max_epochs parameters in the yolo-pose.cfg file) and some data augmentation parameters (jitter, hue, saturation, exposure parameters in dataset.py) might also need to be adjusted for a better convergence on your dataset. 
-- For multiple object pose estimation, you should also pre-compute anchor values using the procedure described in Section 3.2 of the paper and specify it in the model configuration file (yolo-pose-multi.cfg). Please also make sure to use correct number of classes and specify it in yolo-pose-multi.cfg. 
-- You should further change the image size and camera parameters (fx, fy, u0, v0, width, height) in the data configuration files with the ones specific to your dataset. 
-
-While creating a training dataset, sampling a large number of viewpoints/distances and modeling a large variability of illumination/occlusion/background settings would be important in increasing the generalization ability of the approach on your dataset. If you would like to adjust some model & loss parameters (e.g. weighthing factor for different loss terms) for your own purposes, you could do so in the model configuration file (yolo-pose.cfg).
