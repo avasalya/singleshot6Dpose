@@ -1,7 +1,9 @@
 # Squeezed Deep 6DoF Object Detection Using Knowledge Distillation
- 
+
+This repository implements [Squeezed Deep 6DoF Object Detection Using Knowledge Distillation](https://arxiv.org/abs/2003.13586).
+
 This work is a modification of the original forked work to add other architectures and Knowledge Distillation.
-The architectures used to change the YOLOv2 of the original work was YOLO-LITE and Tiny-YOLO. This modification reduce the network weights by 99%.
+The architectures used to change the YOLOv2 of the original work was YOLO-LITE. This modification reduce the network weights by 99%.
 The weights of the networks can be downloaded [here](https://drive.google.com/drive/folders/1FsWjgrqzgwHlQCmApwvnUKOVS-bjatDZ?usp=sharing).
 
 ### Introduction
@@ -94,3 +96,14 @@ Our label files consist of 21 ground-truth values. We predict 9 points correspon
 Respectively, 21 numbers correspond to the following: 1st number: class label, 2nd number: x0 (x-coordinate of the centroid), 3rd number: y0 (y-coordinate of the centroid), 4th number: x1 (x-coordinate of the first corner), 5th number: y1 (y-coordinate of the first corner), ..., 18th number: x8 (x-coordinate of the eighth corner), 19th number: y8 (y-coordinate of the eighth corner), 20th number: x range, 21st number: y range.
  
 The coordinates are normalized by the image width and height: x / image_width and y / image_height. This is useful to have similar output ranges for the coordinate regression and object classification tasks. 
+
+### Citation  
+If you use this in your research, please cite this project.
+```
+@article{felix2020squeezed6dof,
+  title={Squeezed Deep 6DoF Object Detection Using Knowledge Distillation},
+  author={Felix, Heitor and Rodrigues, Walber M and Mac{\^e}do, David and Sim{\~o}es, Francisco and Oliveira, Adriano LI and Teichrieb, Veronica and Zanchettin, Cleber},
+  journal={arXiv preprint arXiv:2003.13586},
+  year={2020}
+}
+```
