@@ -1,0 +1,14 @@
+train  = txonigiri/data/01/train.txt
+valid  = txonigiri/data/01/test.txt
+backup = backup/txonigiri
+mesh = txonigiri/models/obj_01.ply
+tr_range = txonigiri/data/01/training_range.txt
+name = txonigiri
+diam = 0.121
+gpus = 2,3
+width = 640
+height = 480
+fx = 605.286 
+fy = 605.699
+u0 = 320.075
+v0 = 247.877

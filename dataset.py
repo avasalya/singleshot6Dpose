@@ -61,6 +61,7 @@ class listDataset(Dataset):
 
         # Get the image path
         imgpath = self.lines[index].rstrip()
+        imgpath = 'txonigiri/data/01/JPEGImages/' + imgpath + '.png'
 
         # Decide which size you are going to resize the image depending on the epoch (10, 20, etc.)
         if self.train and index % self.batch_size== 0:

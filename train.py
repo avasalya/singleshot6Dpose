@@ -280,10 +280,10 @@ if __name__ == "__main__":
 
     # Training settings
     parser = argparse.ArgumentParser(description='SingleShotPose')
-    parser.add_argument('--datacfg', type=str, default='cfg/ape.data') # data config
-    parser.add_argument('--modelcfg', type=str, default='cfg/yolo-pose.cfg') # network config
+    parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiri.data') # data config
+    parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
-    parser.add_argument('--backupdir', type=str, default='backup/ape') # model backup path
+    parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
     args                = parser.parse_args()
@@ -326,6 +326,8 @@ if __name__ == "__main__":
 
     # Train parameters
     max_epochs    = 500 # max_batches*batch_size/nsamples+1
+    num_keypoints = int(net_options['num_keypoints'])
+
     use_cuda      = True
     seed          = int(time.time())
     eps           = 1e-5
@@ -348,7 +350,8 @@ if __name__ == "__main__":
     seed          = int(time.time())
     torch.manual_seed(seed)
     if use_cuda:
-        os.environ['CUDA_VISIBLE_DEVICES'] = gpus
+        os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+        os.environ['CUDA_VISIBLE_DEVICES'] = "3,2" #gpus
         torch.cuda.manual_seed(seed)
 
     # Specifiy the model and the loss
@@ -399,7 +402,8 @@ if __name__ == "__main__":
 
     # Pass the model to GPU
     if use_cuda:
-        model = model.cuda() # model = torch.nn.DataParallel(model, device_ids=[0]).cuda() # Multiple GPU parallelism
+        model = model.cuda()
+        # model = torch.nn.DataParallel(model, device_ids=[0]).cuda() # Multiple GPU parallelism
         if distiling:
             distiling_model = distiling_model.cuda()
 

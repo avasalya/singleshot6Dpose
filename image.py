@@ -2,8 +2,11 @@
 # encoding: utf-8
 import random
 import os
-from PIL import Image, ImageChops, ImageMath
+import cv2
+import imageio
 import numpy as np
+import random as rand
+from PIL import Image, ImageChops, ImageMath
 
 def scale_image_channel(im, c, v):
     cs = list(im.split())
@@ -70,7 +73,7 @@ def data_augmentation(img, shape, jitter, hue, saturation, exposure):
     sized = cropped.resize(shape)
 
     img = random_distort_image(sized, hue, saturation, exposure)
-    
+
     return img, flip, dx,dy,sx,sy 
 
 def fill_truth_detection(labpath, w, h, flip, dx, dy, sx, sy, num_keypoints, max_num_gt):
@@ -78,6 +81,9 @@ def fill_truth_detection(labpath, w, h, flip, dx, dy, sx, sy, num_keypoints, max
     label = np.zeros((max_num_gt,num_labels))
     if os.path.getsize(labpath):
         bs = np.loadtxt(labpath)
+        # print('labpath', labpath)
+        # print("bs", bs)
+
         if bs is None:
             return label
         bs = np.reshape(bs, (-1, num_labels))
@@ -105,6 +111,7 @@ def fill_truth_detection(labpath, w, h, flip, dx, dy, sx, sy, num_keypoints, max
                 break
 
     label = np.reshape(label, (-1))
+
     return label
 
 def change_background(img, mask, bg):
@@ -128,7 +135,10 @@ def change_background(img, mask, bg):
 
 def load_data_detection(imgpath, shape, jitter, hue, saturation, exposure, bgpath, num_keypoints, max_num_gt):
     labpath = imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
-    maskpath = imgpath.replace('JPEGImages', 'mask').replace('/00', '/').replace('.jpg', '.png')
+    # print('imgpath', imgpath)
+    # maskpath = imgpath.replace('JPEGImages', 'mask').replace('/00', '/').replace('.jpg', '.png')
+    maskpath = imgpath.replace('JPEGImages', 'mask').replace('.jpg', '.png')
+    # print('maskpath', maskpath)
 
     ## data augmentation
     img = Image.open(imgpath).convert('RGB')
@@ -137,7 +147,12 @@ def load_data_detection(imgpath, shape, jitter, hue, saturation, exposure, bgpat
     
     img = change_background(img, mask, bg)
     img,flip,dx,dy,sx,sy = data_augmentation(img, shape, jitter, hue, saturation, exposure)
+
+    # idx = rand.sample(range(0,100), 1)
+    # imageio.imwrite('test-box/augimg{}.png'.format(idx), img)
+
     ow, oh = img.size
     label = fill_truth_detection(labpath, ow, oh, flip, dx, dy, 1./sx, 1./sy, num_keypoints, max_num_gt)
+    
     return img,label
 

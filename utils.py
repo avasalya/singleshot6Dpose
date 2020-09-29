@@ -416,9 +416,9 @@ def get_image_size(fname):
 def logging(message):
     print('%s %s' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), message))
 
-def read_pose(lab_path):
-    if os.path.getsize(lab_path):
-        truths = np.loadtxt(lab_path)
-        return truths
-    else:
-        return np.array([])
+# def read_pose(lab_path):
+#     if os.path.getsize(lab_path):
+#         truths = np.loadtxt(lab_path)
+#         return truths
+#     else:
+#         return np.array([])
