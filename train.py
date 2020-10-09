@@ -1,3 +1,9 @@
+
+""" TO TRAIN 
+$ create conda environment -- similar to yolact environment
+$ python train.py
+"""
+
 from __future__ import print_function
 import sys
 import time

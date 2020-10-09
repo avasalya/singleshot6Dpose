@@ -16,18 +16,17 @@ import argparse
 import pandas as pd
 
 # Create new directory
-def makedirs(path):
+def makedirs_(path):
     if not os.path.exists( path ):
         os.makedirs( path )
 
+def truths_length(truths, max_num_gt=50):
+    for i in range(max_num_gt):
+        if truths[i][1] == 0:
+            return i
+
 def valid(datacfg, cfgfile, weightfile, outfile):
-    def truths_length(truths):
-        for i in range(50):
-def valid(datacfg, modelcfg, weightfile):
-    def truths_length(truths, max_num_gt=50):
-        for i in range(max_num_gt):
-            if truths[i][1] == 0:
-                return i
+# def valid(datacfg, modelcfg, weightfile):
 
     # Parse configuration files
     data_options = read_data_cfg(datacfg)
@@ -43,7 +42,7 @@ def valid(datacfg, modelcfg, weightfile):
     im_width     = int(data_options['width'])
     im_height    = int(data_options['height'])
     if not os.path.exists(backupdir):
-        makedirs(backupdir)
+        makedirs_(backupdir)
 
     # Parameters
     seed = int(time.time())
@@ -54,9 +53,9 @@ def valid(datacfg, modelcfg, weightfile):
     num_classes     = 1
     testing_samples = 0.0
     if save:
-        makedirs(backupdir + '/test')
-        makedirs(backupdir + '/test/gt')
-        makedirs(backupdir + '/test/pr')
+        makedirs_(backupdir + '/test')
+        makedirs_(backupdir + '/test/gt')
+        makedirs_(backupdir + '/test/pr')
     # To save
     testing_error_trans = 0.0
     testing_error_angle = 0.0
