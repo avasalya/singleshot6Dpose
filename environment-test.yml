@@ -1,8 +1,9 @@
-name: yolact
+name: yolo6d
 channels:
   - pytorch
   - anaconda
   - conda-forge
+  - soumith
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
@@ -14,12 +15,17 @@ dependencies:
   - ca-certificates=2020.7.22=0
   - certifi=2020.6.20=py37_0
   - cffi=1.14.1=py37h2b28604_0
+  - cloudpickle=1.6.0=py_0
   - cudatoolkit=10.0.130=0
   - cudnn=7.6.5=cuda10.0_0
   - cycler=0.10.0=py_2
   - cython=0.29.21=py37h3340039_0
+  - cytoolz=0.11.0=py37h7b6447c_0
+  - dask-core=2.30.0=py_0
+  - decorator=4.4.2=py_0
   - freetype=2.10.2=he06d7ca_0
   - imageio=2.9.0=py_0
+  - intel-openmp=2020.2=254
   - isort=5.4.2=py37_0
   - jpeg=9d=h516909a_0
   - kiwisolver=1.2.0=py37h99015e2_0
@@ -43,8 +49,10 @@ dependencies:
   - mccabe=0.6.1=py37_1
   - mkl=2020.2=256
   - ncurses=6.2=he1b5a44_1
+  - networkx=2.5=py_0
   - ninja=1.10.1=hc9558a2_1
-  - numpy=1.19.1=py37h7ea13bd_2
+  - numpy=1.19.1=py37h30dfecb_0
+  - numpy-base=1.19.1=py37h75fe3a5_0
   - olefile=0.46=py_0
   - openssl=1.0.2u=h7b6447c_0
   - pandas=1.1.1=py37he6710b0_0
@@ -57,26 +65,30 @@ dependencies:
   - python_abi=3.7=1_cp37m
   - pytorch=1.2.0=py3.7_cuda10.0.130_cudnn7.6.2_0
   - pytz=2020.1=py_0
+  - pywavelets=1.1.1=py37h7b6447c_2
+  - pyyaml=5.3.1=py37h7b6447c_1
   - readline=7.0=hf8c457e_1001
+  - scikit-image=0.16.2=py37h0573a6f_0
   - scipy=1.5.2=py37habc2bb6_0
   - setuptools=49.6.0=py37hc8dfbb8_0
   - six=1.15.0=pyh9f0ad1d_0
   - sqlite=3.28.0=h8b20d00_0
   - tk=8.6.10=hed695b0_0
   - toml=0.10.1=py_0
+  - toolz=0.11.1=py_0
   - torchvision=0.4.0=py37_cu100
   - tornado=6.0.4=py37h8f50634_1
   - typed-ast=1.4.1=py37h7b6447c_0
   - wheel=0.35.1=pyh9f0ad1d_0
   - wrapt=1.11.2=py37h7b6447c_0
   - xz=5.2.5=h516909a_1
+  - yaml=0.2.5=h7b6447c_0
   - zlib=1.2.11=h516909a_1009
   - zstd=1.4.5=h6597ccf_2
   - pip:
-    - opencv-python==4.4.0.42
+    - opencv-python-headless==4.4.0.44
     - pillow==6.2.2
     - pycocotools==2.0.2
     - pyqt5==5.15.1
     - pyqt5-sip==12.8.1
-prefix: /home/aist/anaconda3/envs/yolact
-
+prefix: /home/ash/anaconda3/envs/yolo6d

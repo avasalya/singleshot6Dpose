@@ -1,0 +1,14 @@
+train  = /media/ash/SSD/Odaiba/dataset/yolo6d/txonigiri/data/01/train.txt
+valid  = /media/ash/SSD/Odaiba/dataset/yolo6d/txonigiri/data/01/test.txt
+mesh = /media/ash/SSD/Odaiba/dataset/yolo6d/txonigiri/models/obj_01.ply
+tr_range = txonigiri/data/01/training_range.txt
+backup = backup/txonigiri
+name = txonigiri
+diam = 0.121
+gpus = 0,1
+width = 640
+height = 480
+fx = 605.286
+fy = 605.699
+u0 = 320.075
+v0 = 247.877

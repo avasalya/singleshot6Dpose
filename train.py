@@ -1,5 +1,5 @@
 
-""" TO TRAIN 
+""" TO TRAIN
 $ create conda environment -- similar to yolact environment
 $ python train.py
 """
@@ -23,7 +23,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable # Useful info about autograd: http://pytorch.org/docs/master/notes/autograd.html
 
 import dataset
-from utils import *    
+from utils import *
 from cfg import parse_cfg
 from region_loss import RegionLoss, DistiledRegionLoss
 from darknet import Darknet
@@ -50,19 +50,19 @@ def adjust_learning_rate(optimizer, batch):
 def train(epoch):
 
     global processed_batches
-    
+
     # Initialize timer
     t0 = time.time()
 
     # Get the dataloader for training dataset
-    train_loader = torch.utils.data.DataLoader(dataset.listDataset(trainlist, 
+    train_loader = torch.utils.data.DataLoader(dataset.listDataset(trainlist,
                                                                    shape=(init_width, init_height),
                                                             	   shuffle=True,
-                                                            	   transform=transforms.Compose([transforms.ToTensor(),]), 
-                                                            	   train=True, 
+                                                            	   transform=transforms.Compose([transforms.ToTensor(),]),
+                                                            	   train=True,
                                                             	   seen=model.seen,
                                                             	   batch_size=batch_size,
-                                                            	   num_workers=num_workers, 
+                                                            	   num_workers=num_workers,
                                                                    bg_file_names=bg_file_names),
                                                 batch_size=batch_size, shuffle=False, **kwargs)
 
@@ -137,7 +137,7 @@ def train(epoch):
             print('           total : %f' % (avg_time[8]/(batch_idx)))
         t1 = time.time()
     t1 = time.time()
-    return epoch * math.ceil(len(train_loader.dataset) / float(batch_size) ) + niter - 1 
+    return epoch * math.ceil(len(train_loader.dataset) / float(batch_size) ) + niter - 1
 
 def test(epoch, niter):
     def truths_length(truths):
@@ -145,7 +145,7 @@ def test(epoch, niter):
             if truths[i][1] == 0:
                 return i
 
-    # Set the module in evaluation mode (turn off dropout, batch normalization etc.)        
+    # Set the module in evaluation mode (turn off dropout, batch normalization etc.)
     model.eval()
 
     # Parameters
@@ -165,7 +165,7 @@ def test(epoch, niter):
     logging("   Testing...")
     logging("   Number of test samples: %d" % len(test_loader.dataset))
     notpredicted = 0
-    # Iterate through test examples 
+    # Iterate through test examples
     for batch_idx, (data, target) in enumerate(test_loader):
         t1 = time.time()
         # Pass the data to GPU
@@ -176,11 +176,11 @@ def test(epoch, niter):
         data = Variable(data)
         t2 = time.time()
         # Formward pass
-        with torch.no_grad():            
-            output = model(data).data  
+        with torch.no_grad():
+            output = model(data).data
         t3 = time.time()
         # Using confidence threshold, eliminate low-confidence predictions
-        all_boxes = get_region_boxes(output, num_classes, num_keypoints)        
+        all_boxes = get_region_boxes(output, num_classes, num_keypoints)
         t4 = time.time()
         # Iterate through all batch elements
         for box_pr, target in zip([all_boxes], [target[0]]):
@@ -195,12 +195,12 @@ def test(epoch, niter):
                     box_gt.append(truths[k][j])
                 box_gt.extend([1.0, 1.0])
                 box_gt.append(truths[k][0])
-                   
-                # Denormalize the corner predictions 
+
+                # Denormalize the corner predictions
                 corners2D_gt = np.array(np.reshape(box_gt[:num_keypoints*2], [num_keypoints, 2]), dtype='float32')
                 corners2D_pr = np.array(np.reshape(box_pr[:num_keypoints*2], [num_keypoints, 2]), dtype='float32')
                 corners2D_gt[:, 0] = corners2D_gt[:, 0] * im_width
-                corners2D_gt[:, 1] = corners2D_gt[:, 1] * im_height               
+                corners2D_gt[:, 1] = corners2D_gt[:, 1] * im_height
                 corners2D_pr[:, 0] = corners2D_pr[:, 0] * im_width
                 corners2D_pr[:, 1] = corners2D_pr[:, 1] * im_height
 
@@ -225,18 +225,18 @@ def test(epoch, niter):
                 # Compute pixel error
                 Rt_gt        = np.concatenate((R_gt, t_gt), axis=1)
                 Rt_pr        = np.concatenate((R_pr, t_pr), axis=1)
-                proj_2d_gt   = compute_projection(vertices, Rt_gt, internal_calibration) 
-                proj_2d_pred = compute_projection(vertices, Rt_pr, internal_calibration) 
+                proj_2d_gt   = compute_projection(vertices, Rt_gt, internal_calibration)
+                proj_2d_pred = compute_projection(vertices, Rt_pr, internal_calibration)
                 norm         = np.linalg.norm(proj_2d_gt - proj_2d_pred, axis=0)
                 pixel_dist   = np.mean(norm)
                 errs_2d.append(pixel_dist)
 
                 # Compute 3D distances
-                transform_3d_gt   = compute_transformation(vertices, Rt_gt) 
-                transform_3d_pred = compute_transformation(vertices, Rt_pr)  
+                transform_3d_gt   = compute_transformation(vertices, Rt_gt)
+                transform_3d_pred = compute_transformation(vertices, Rt_pr)
                 norm3d            = np.linalg.norm(transform_3d_gt - transform_3d_pred, axis=0)
-                vertex_dist       = np.mean(norm3d)    
-                errs_3d.append(vertex_dist)  
+                vertex_dist       = np.mean(norm3d)
+                errs_3d.append(vertex_dist)
 
                 # Sum errors
                 testing_error_trans  += trans_dist
@@ -247,7 +247,7 @@ def test(epoch, niter):
         t5 = time.time()
 
     # Compute 2D projection, 6D pose and 5cm5degree scores
-    px_threshold = 5 # 5 pixel threshold for 2D reprojection error is standard in recent sota 6D object pose estimation works 
+    px_threshold = 5 # 5 pixel threshold for 2D reprojection error is standard in recent sota 6D object pose estimation works
     eps          = 1e-5
     acc          = len(np.where(np.array(errs_2d) <= px_threshold)[0]) * 100. / (len(errs_2d)+eps)
     acc3d        = len(np.where(np.array(errs_3d) <= vx_threshold)[0]) * 100. / (len(errs_3d)+eps)
@@ -256,7 +256,7 @@ def test(epoch, niter):
     mean_err_2d  = np.mean(errs_2d)
     mean_corner_err_2d = np.mean(errs_corner2D)
     nts = float(testing_samples)
-    
+
     if testtime:
         print('-----------------------------------')
         print('  tensor to cuda : %f' % (t2 - t1))
@@ -310,7 +310,7 @@ if __name__ == "__main__":
     net_options   = parse_cfg(modelcfg)[0]
     trainlist     = data_options['train']
     testlist      = data_options['valid']
-    gpus          = data_options['gpus'] 
+    gpus          = data_options['gpus']
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
     diam          = float(data_options['diam'])
@@ -339,7 +339,7 @@ if __name__ == "__main__":
     eps           = 1e-5
     save_interval = 10 # epoches
     dot_interval  = 70 # batches
-    best_acc      = -1 
+    best_acc      = -1
 
     # Test parameters
     im_width    = int(data_options['width'])
@@ -367,7 +367,7 @@ if __name__ == "__main__":
     # Model settings
     # model.load_weights(weightfile)
 
-    model.load_weights_until_last(initweightfile) 
+    model.load_weights_until_last(initweightfile)
     model.print_network()
     model.seen = 0
     region_loss.iter  = model.iter
@@ -375,7 +375,7 @@ if __name__ == "__main__":
     processed_batches = model.seen//batch_size
     init_width        = model.width
     init_height       = model.height
-    init_epoch        = model.seen//nsamples 
+    init_epoch        = model.seen//nsamples
 
     # Variable to save
     training_iters          = []
@@ -399,10 +399,10 @@ if __name__ == "__main__":
     kwargs = {'num_workers': 4, 'pin_memory': True} if use_cuda else {}
 
     # Get the dataloader for test data
-    test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist, 
+    test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist,
     															  shape=(test_width, test_height),
                                                                   shuffle=False,
-                                                                  transform=transforms.Compose([transforms.ToTensor(),]), 
+                                                                  transform=transforms.Compose([transforms.ToTensor(),]),
                                                                   train=False),
                                              batch_size=1, shuffle=False, **kwargs)
 
@@ -428,11 +428,11 @@ if __name__ == "__main__":
         logging('evaluating ...')
         test(0, 0)
     else:
-        for epoch in range(init_epoch, max_epochs): 
+        for epoch in range(init_epoch, max_epochs):
             # TRAIN
             niter = train(epoch)
             # TEST and SAVE
-            if (epoch % 10 == 0) and (epoch is not 0): 
+            if (epoch % 10 == 0) and (epoch is not 0):
                 test(epoch, niter)
                 logging('save training stats to %s/costs.npz' % (backupdir))
                 np.savez(os.path.join(backupdir, "costs.npz"),
@@ -441,7 +441,7 @@ if __name__ == "__main__":
                     testing_iters=testing_iters,
                     testing_accuracies=testing_accuracies,
                     testing_errors_pixel=testing_errors_pixel,
-                    testing_errors_angle=testing_errors_angle) 
+                    testing_errors_angle=testing_errors_angle)
                 if (testing_accuracies[-1] > best_acc ):
                     best_acc = testing_accuracies[-1]
                     logging('best model so far!')
@@ -454,7 +454,7 @@ if __name__ == "__main__":
                         '2d_projection': testing_accuracies[-1],
                         '3d_transformation': testing_acc3d[-1],
                     }
-    
+
     csv_output_name = 'test_metrics_distilling.csv' if distiling else 'test_metrics.csv'
 
     try:

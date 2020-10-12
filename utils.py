@@ -10,8 +10,8 @@ import torch.nn.functional as F
 import cv2
 from scipy import spatial
 
-import struct 
-import imghdr 
+import struct
+import imghdr
 
 # Create new directory
 def makedirs(path):
@@ -31,7 +31,7 @@ def get_all_files(directory):
 def calcAngularDistance(gt_rot, pr_rot):
 
     rotDiff = np.dot(gt_rot, np.transpose(pr_rot))
-    trace = np.trace(rotDiff) 
+    trace = np.trace(rotDiff)
     return np.rad2deg(np.arccos((trace-1.0)/2.0))
 
 def get_camera_intrinsic(u0, v0, fx, fy):
@@ -64,7 +64,7 @@ def adi(pts_est, pts_gt):
     return e
 
 def get_3D_corners(vertices):
-    
+
     min_x = np.min(vertices[0,:])
     max_x = np.max(vertices[0,:])
     min_y = np.min(vertices[1,:])
@@ -87,14 +87,14 @@ def pnp(points_3D, points_2D, cameraMatrix):
     try:
         distCoeffs = pnp.distCoeffs
     except:
-        distCoeffs = np.zeros((8, 1), dtype='float32') 
+        distCoeffs = np.zeros((8, 1), dtype='float32')
 
     assert points_2D.shape[0] == points_2D.shape[0], 'points 3D and points 2D must have same number of vertices'
 
     _, R_exp, t = cv2.solvePnP(points_3D,
                               np.ascontiguousarray(points_2D[:,:2]).reshape((-1,1,2)),
                               cameraMatrix,
-                              distCoeffs)                            
+                              distCoeffs)
 
     R, _ = cv2.Rodrigues(R_exp)
     return R, t
@@ -141,10 +141,10 @@ def corner_confidences(gt_corners, pr_corners, th=80, sharpness=2, im_width=640,
         th        : distance threshold, type: int
         sharpness : sharpness of the exponential that assigns a confidence value to the distance
         -----------
-        return    : a torch.FloatTensor of shape (nA,) with 9 confidence values 
+        return    : a torch.FloatTensor of shape (nA,) with 9 confidence values
     '''
     shape = gt_corners.size()
-    nA = shape[1]  
+    nA = shape[1]
     dist = gt_corners - pr_corners
     num_el = dist.numel()
     num_keypoints = num_el//(nA*2)
@@ -153,7 +153,7 @@ def corner_confidences(gt_corners, pr_corners, th=80, sharpness=2, im_width=640,
     dist[:, :, 1] = dist[:, :, 1] * im_height
 
     eps = 1e-5
-    distthresh = torch.FloatTensor([th]).repeat(nA, num_keypoints) 
+    distthresh = torch.FloatTensor([th]).repeat(nA, num_keypoints)
     dist = torch.sqrt(torch.sum((dist)**2, dim=2)).squeeze() # nA x 9
     mask = (dist < distthresh).type(torch.FloatTensor)
     conf = torch.exp(sharpness*(1 - dist/distthresh))-1  # mask * (torch.exp(math.log(2) * (1.0 - dist/rrt)) - 1)
@@ -170,7 +170,7 @@ def corner_confidence(gt_corners, pr_corners, th=80, sharpness=2, im_width=640, 
         th        : distance threshold, type: int
         sharpness : sharpness of the exponential that assigns a confidence value to the distance
         -----------
-        return    : a list of shape (9,) with 9 confidence values 
+        return    : a list of shape (9,) with 9 confidence values
     '''
     dist = torch.FloatTensor(gt_corners) - pr_corners
     num_keypoints = dist.numel()//2
@@ -183,7 +183,7 @@ def corner_confidence(gt_corners, pr_corners, th=80, sharpness=2, im_width=640, 
     conf  = torch.exp(sharpness * (1.0 - dist/th)) - 1
     conf0 = torch.exp(torch.FloatTensor([sharpness])) - 1 + eps
     conf  = conf / conf0.repeat(num_keypoints, 1)
-    conf  = mask * conf 
+    conf  = mask * conf
     return torch.mean(conf)
 
 def sigmoid(x):
@@ -214,9 +214,9 @@ def convert2cpu_long(gpu_matrix):
     return torch.LongTensor(gpu_matrix.size()).copy_(gpu_matrix)
 
 def get_region_boxes(output, num_classes, num_keypoints, only_objectness=1, validation=True):
-    
+
     # Parameters
-    anchor_dim = 1 
+    anchor_dim = 1
     if output.dim() == 3:
         output = output.unsqueeze(0)
     batch = output.size(0)
@@ -230,7 +230,7 @@ def get_region_boxes(output, num_classes, num_keypoints, only_objectness=1, vali
     output    = output.view(batch*anchor_dim, 2*num_keypoints+1+num_classes, h*w).transpose(0,1).contiguous().view(2*num_keypoints+1+num_classes, batch*anchor_dim*h*w)
     grid_x    = torch.linspace(0, w-1, w).repeat(h,1).repeat(batch*anchor_dim, 1, 1).view(batch*anchor_dim*h*w).cuda()
     grid_y    = torch.linspace(0, h-1, h).repeat(w,1).t().repeat(batch*anchor_dim, 1, 1).view(batch*anchor_dim*h*w).cuda()
-    
+
     xs = list()
     ys = list()
     xs.append(torch.sigmoid(output[0]) + grid_x)
@@ -244,7 +244,7 @@ def get_region_boxes(output, num_classes, num_keypoints, only_objectness=1, vali
     cls_max_confs = cls_max_confs.view(-1)
     cls_max_ids   = cls_max_ids.view(-1)
     t1 = time.time()
-    
+
     # GPU to CPU
     sz_hw = h*w
     sz_hwa = sz_hw*anchor_dim
@@ -269,7 +269,7 @@ def get_region_boxes(output, num_classes, num_keypoints, only_objectness=1, vali
                         conf = det_confs[ind]
                     else:
                         conf = det_confs[ind] * cls_max_confs[ind]
-                    
+
                     if conf > max_conf:
                         max_conf = conf
                         bcx = list()
@@ -285,7 +285,7 @@ def get_region_boxes(output, num_classes, num_keypoints, only_objectness=1, vali
                             box.append(bcy[j]/h)
                         box.append(det_conf)
                         box.append(cls_max_conf)
-                        box.append(cls_max_id)                        
+                        box.append(cls_max_id)
     t3 = time.time()
     if False:
         print('---------------------------------')
@@ -366,7 +366,7 @@ def scale_bboxes(bboxes, width, height):
         dets[i][2] = dets[i][2] * width
         dets[i][3] = dets[i][3] * height
     return dets
-      
+
 def file_lines(thefilepath):
     count = 0
     thefile = open(thefilepath, 'rb')
@@ -383,7 +383,7 @@ def get_image_size(fname):
     from draco'''
     with open(fname, 'rb') as fhandle:
         head = fhandle.read(24)
-        if len(head) != 24: 
+        if len(head) != 24:
             return
         if imghdr.what(fname) == 'png':
             check = struct.unpack('>i', head[4:8])[0]
@@ -395,15 +395,15 @@ def get_image_size(fname):
         elif imghdr.what(fname) == 'jpeg' or imghdr.what(fname) == 'jpg':
             try:
                 fhandle.seek(0) # Read 0xff next
-                size = 2 
-                ftype = 0 
+                size = 2
+                ftype = 0
                 while not 0xc0 <= ftype <= 0xcf:
                     fhandle.seek(size, 1)
                     byte = fhandle.read(1)
                     while ord(byte) == 0xff:
                         byte = fhandle.read(1)
                     ftype = ord(byte)
-                    size = struct.unpack('>H', fhandle.read(2))[0] - 2 
+                    size = struct.unpack('>H', fhandle.read(2))[0] - 2
                 # We are at a SOFn block
                 fhandle.seek(1, 1)  # Skip `precision' byte.
                 height, width = struct.unpack('>HH', fhandle.read(4))
