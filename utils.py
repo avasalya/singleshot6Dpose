@@ -92,9 +92,9 @@ def pnp(points_3D, points_2D, cameraMatrix):
     assert points_2D.shape[0] == points_2D.shape[0], 'points 3D and points 2D must have same number of vertices'
 
     _, R_exp, t = cv2.solvePnP(points_3D,
-                              np.ascontiguousarray(points_2D[:,:2]).reshape((-1,1,2)),
-                              cameraMatrix,
-                              distCoeffs)
+                            np.ascontiguousarray(points_2D[:,:2]).reshape((-1,1,2)),
+                            cameraMatrix,
+                            distCoeffs)
 
     R, _ = cv2.Rodrigues(R_exp)
     return R, t
