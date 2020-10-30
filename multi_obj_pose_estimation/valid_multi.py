@@ -28,12 +28,12 @@ def valid(datacfg, cfgfile, weightfile):
     meshname     = data_options['mesh']
     name         = data_options['name']
     im_width     = int(data_options['im_width'])
-    im_height    = int(data_options['im_height']) 
+    im_height    = int(data_options['im_height'])
     fx           = float(data_options['fx'])
     fy           = float(data_options['fy'])
     u0           = float(data_options['u0'])
     v0           = float(data_options['v0'])
-    
+
     # Parse net configuration file
     net_options   = parse_cfg(cfgfile)[0]
     loss_options  = parse_cfg(cfgfile)[-1]
@@ -69,40 +69,40 @@ def valid(datacfg, cfgfile, weightfile):
 
     # Get the dataloader for the test dataset
     valid_dataset = dataset_multi.listDataset(valid_images, shape=(model.width, model.height), shuffle=False, objclass=name, transform=transforms.Compose([transforms.ToTensor(),]))
-    test_loader   = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=False, **kwargs) 
+    test_loader   = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=False, **kwargs)
 
     # Iterate through test batches (Batch size for test data is 1)
     logging('Testing {}...'.format(name))
     for batch_idx, (data, target) in enumerate(test_loader):
-        
+
         t1 = time.time()
         # Pass data to GPU
         if use_cuda:
             data = data.cuda()
             # target = target.cuda()
-        
+
         # Wrap tensors in Variable class, set volatile=True for inference mode and to use minimal memory during inference
         data = Variable(data, volatile=True)
         t2 = time.time()
-        
+
         # Forward pass
-        output = model(data).data  
+        output = model(data).data
         t3 = time.time()
-        
+
         # Using confidence threshold, eliminate low-confidence predictions
         trgt = target[0].view(-1, num_labels)
-        all_boxes = get_multi_region_boxes(output, conf_thresh, num_classes, num_keypoints, anchors, num_anchors, int(trgt[0][0]), only_objectness=0)        
+        all_boxes = get_multi_region_boxes(output, conf_thresh, num_classes, num_keypoints, anchors, num_anchors, int(trgt[0][0]), only_objectness=0)
         t4 = time.time()
-        
+
         # Iterate through all images in the batch
         for i in range(output.size(0)):
-            
+
             # For each image, get all the predictions
             boxes   = all_boxes[i]
-            
+
             # For each image, get all the targets (for multiple object pose estimation, there might be more than 1 target per image)
             truths  = target[i].view(-1, num_labels)
-            
+
             # Get how many object are present in the scene
             num_gts = truths_length(truths)
 
@@ -113,7 +113,7 @@ def valid(datacfg, cfgfile, weightfile):
                     box_gt.append(truths[k][j])
                 box_gt.extend([1.0, 1.0])
                 box_gt.append(truths[k][0])
-                
+
                 # If the prediction has the highest confidence, choose it as our prediction
                 best_conf_est = -sys.maxsize
                 for j in range(len(boxes)):
@@ -121,29 +121,29 @@ def valid(datacfg, cfgfile, weightfile):
                         best_conf_est = boxes[j][2*num_keypoints]
                         box_pr        = boxes[j]
                         match         = corner_confidence(box_gt[:2*num_keypoints], torch.FloatTensor(boxes[j][:2*num_keypoints]))
-                    
-                # Denormalize the corner predictions 
+
+                # Denormalize the corner predictions
                 corners2D_gt = np.array(np.reshape(box_gt[:2*num_keypoints], [-1, 2]), dtype='float32')
                 corners2D_pr = np.array(np.reshape(box_pr[:2*num_keypoints], [-1, 2]), dtype='float32')
                 corners2D_gt[:, 0] = corners2D_gt[:, 0] * im_width
-                corners2D_gt[:, 1] = corners2D_gt[:, 1] * im_height               
+                corners2D_gt[:, 1] = corners2D_gt[:, 1] * im_height
                 corners2D_pr[:, 0] = corners2D_pr[:, 0] * im_width
                 corners2D_pr[:, 1] = corners2D_pr[:, 1] * im_height
                 corners2D_gt_corrected = fix_corner_order(corners2D_gt) # Fix the order of corners
-                
+
                 # Compute [R|t] by pnp
                 objpoints3D = np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D[:3, :]), axis=1)), dtype='float32')
                 K = np.array(intrinsic_calibration, dtype='float32')
                 R_gt, t_gt = pnp(objpoints3D,  corners2D_gt_corrected, K)
                 R_pr, t_pr = pnp(objpoints3D,  corners2D_pr, K)
-                
+
                 # Compute pixel error
                 Rt_gt        = np.concatenate((R_gt, t_gt), axis=1)
                 Rt_pr        = np.concatenate((R_pr, t_pr), axis=1)
-                proj_2d_gt   = compute_projection(vertices, Rt_gt, intrinsic_calibration) 
-                proj_2d_pred = compute_projection(vertices, Rt_pr, intrinsic_calibration) 
-                proj_corners_gt = np.transpose(compute_projection(corners3D, Rt_gt, intrinsic_calibration)) 
-                proj_corners_pr = np.transpose(compute_projection(corners3D, Rt_pr, intrinsic_calibration)) 
+                proj_2d_gt   = compute_projection(vertices, Rt_gt, intrinsic_calibration)
+                proj_2d_pred = compute_projection(vertices, Rt_pr, intrinsic_calibration)
+                proj_corners_gt = np.transpose(compute_projection(corners3D, Rt_gt, intrinsic_calibration))
+                proj_corners_pr = np.transpose(compute_projection(corners3D, Rt_pr, intrinsic_calibration))
                 norm         = np.linalg.norm(proj_2d_gt - proj_2d_pred, axis=0)
                 pixel_dist   = np.mean(norm)
                 errs_2d.append(pixel_dist)

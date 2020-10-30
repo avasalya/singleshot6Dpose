@@ -220,6 +220,8 @@ def get_region_boxes(output, num_classes, num_keypoints, only_objectness=1, vali
     if output.dim() == 3:
         output = output.unsqueeze(0)
     batch = output.size(0)
+    # print('output.size(1)', output.size(1))
+    # print('(2*num_keypoints+1+num_classes)*anchor_dim', (2*num_keypoints+1+num_classes)*anchor_dim)
     assert(output.size(1) == (2*num_keypoints+1+num_classes)*anchor_dim)
     h = output.size(2)
     w = output.size(3)
@@ -422,3 +424,114 @@ def logging(message):
 #         return truths
 #     else:
 #         return np.array([])
+
+
+
+
+def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=1):
+    model.eval()
+    t0 = time.time()
+
+    if isinstance(img, Image.Image):
+        width = img.width
+        height = img.height
+        img = torch.ByteTensor(torch.ByteStorage.from_buffer(img.tobytes()))
+        img = img.view(height, width, 3).transpose(0,1).transpose(0,2).contiguous()
+        img = img.view(1, 3, height, width)
+        img = img.float().div(255.0)
+    elif type(img) == np.ndarray: # cv2 image
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = torch.from_numpy(img.transpose(2,0,1)).float().div(255.0).unsqueeze(0)
+    else:
+        print("unknow image type")
+        exit(-1)
+
+    t1 = time.time()
+
+    if use_cuda:
+        img = img.cuda()
+    img = torch.autograd.Variable(img)
+    t2 = time.time()
+
+    output = model(img)
+    output = output.data
+    #for j in range(100):
+    #    sys.stdout.write('%f ' % (output.storage()[j]))
+    #print('')
+    t3 = time.time()
+
+    # boxes = get_region_boxes(output, conf_thresh, model.num_classes, model.anchors, model.num_anchors)[0]
+    boxes = get_region_boxes(output, model.num_classes, model.num_keypoints )
+    for j in range(len(boxes)):
+       print("boxes at", j, boxes[j])
+    t4 = time.time()
+
+    boxes = nms(boxes, nms_thresh)
+    t5 = time.time()
+
+    if False:
+        print('-----------------------------------')
+        print(' image to tensor : %f' % (t1 - t0))
+        print('  tensor to cuda : %f' % (t2 - t1))
+        print('         predict : %f' % (t3 - t2))
+        print('get_region_boxes : %f' % (t4 - t3))
+        print('             nms : %f' % (t5 - t4))
+        print('           total : %f' % (t5 - t0))
+        print('-----------------------------------')
+    return boxes
+
+
+def nms(boxes, nms_thresh):
+    if len(boxes) == 0:
+        return boxes
+
+    det_confs = torch.zeros(len(boxes))
+    for i in range(len(boxes)):
+        # det_confs[i] = 1-boxes[i][4]
+        det_confs[i] = 1-boxes[i]
+
+    _,sortIds = torch.sort(det_confs)
+    out_boxes = []
+    for i in range(len(boxes)):
+        box_i = boxes[sortIds[i]]
+        if box_i > 0:
+            out_boxes.append(box_i)
+            for j in range(i+1, len(boxes)):
+                box_j = boxes[sortIds[j]]
+                if bbox_iou(box_i, box_j, x1y1x2y2=False) > nms_thresh:
+                    print(box_i, box_j, bbox_iou(box_i, box_j, x1y1x2y2=False))
+                    box_j = 0
+    return out_boxes
+
+def bbox_iou(box1, box2, x1y1x2y2=False):
+    if x1y1x2y2:
+        mx = min(box1[0], box2[0])
+        Mx = max(box1[2], box2[2])
+        my = min(box1[1], box2[1])
+        My = max(box1[3], box2[3])
+        w1 = box1[2] - box1[0]
+        h1 = box1[3] - box1[1]
+        w2 = box2[2] - box2[0]
+        h2 = box2[3] - box2[1]
+    else:
+        mx = min(box1[0]-box1[2]/2.0, box2[0]-box2[2]/2.0)
+        Mx = max(box1[0]+box1[2]/2.0, box2[0]+box2[2]/2.0)
+        my = min(box1[1]-box1[3]/2.0, box2[1]-box2[3]/2.0)
+        My = max(box1[1]+box1[3]/2.0, box2[1]+box2[3]/2.0)
+        w1 = box1[2]
+        h1 = box1[3]
+        w2 = box2[2]
+        h2 = box2[3]
+    uw = Mx - mx
+    uh = My - my
+    cw = w1 + w2 - uw
+    ch = h1 + h2 - uh
+    carea = 0
+    if cw <= 0 or ch <= 0:
+        return 0.0
+
+    area1 = w1 * h1
+    area2 = w2 * h2
+    carea = cw * ch
+    uarea = area1 + area2 - carea
+    return carea/uarea

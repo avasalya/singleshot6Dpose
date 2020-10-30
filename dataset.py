@@ -62,7 +62,8 @@ class listDataset(Dataset):
         # Get the image path
         imgpath = self.lines[index].rstrip()
         # imgpath = 'txonigiri/data/01/JPEGImages/' + imgpath + '.png' #training
-        imgpath = '/media/ash/SSD/Odaiba/dataset/yolo6d/txonigiri/data/01/JPEGImages/' + imgpath + '.png' #testing
+        # imgpath = '/media/ash/SSD/Odaiba/dataset/linemod-onigiri/txonigiri/data/01/JPEGImages/' + imgpath + '.png' #testing
+        imgpath = '/home/ash/yolact/data/coco/JPEGImages/' + imgpath + '.jpg'
 
         # Decide which size you are going to resize the image depending on the epoch (10, 20, etc.)
         if self.train and index % self.batch_size== 0:

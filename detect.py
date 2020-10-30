@@ -20,7 +20,7 @@ def detect(input_path, weightsfile, cfgfile, show_detection = True, save_video =
     model.cuda()
 
     images_path = glob(input_path + '/*')
-    
+
     # Get size of input image
     height, width, _ = cv2.imread(images_path[0]).shape
     if save_video:
@@ -36,6 +36,7 @@ def detect(input_path, weightsfile, cfgfile, show_detection = True, save_video =
         box_pr = None
 
         for b in range(len(boxes)):
+            print("------------------", b)
             if boxes[b][18] > best_confidence_pr:
                 box_pr = boxes[b]
                 best_confidence_pr = boxes[b][18]
@@ -57,14 +58,20 @@ def detect(input_path, weightsfile, cfgfile, show_detection = True, save_video =
         out.release()
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) == 4:
-        input_path = sys.argv[1]
-        cfgfile = sys.argv[2]
-        weightsfile = sys.argv[3]
-        detect(input_path, weightsfile, cfgfile)
-    else:
-        print('Usage:')
-        print(' python detect.py input_folder weightfile cfgfile')
-        print("Example:")
-        print("python detect.py LINEMOD/ape/JPEGImages cfg/yolo-pose.cfg backup/ape/model_backup.weights")
+    # import sys
+    # if len(sys.argv) == 4:
+    #     input_path = sys.argv[1]
+    #     cfgfile = sys.argv[2]
+    #     weightsfile = sys.argv[3]
+    #     detect(input_path, weightsfile, cfgfile)
+    # else:
+    #     print('Usage:')
+    #     print(' python detect.py input_folder weightfile cfgfile')
+    #     print("Example:")
+    #     print("python detect.py LINEMOD/ape/JPEGImages cfg/yolo-pose.cfg backup/ape/model_backup.weights")
+    
+    
+    input_path  =  '/home/ash/yolact/data/coco/JPEGImages'
+    cfgfile     =  'models_cfg/tekin/yolo-pose.cfg'
+    weightsfile =  'backup/txonigiri/modelv2.3.weights'
+    detect(input_path, weightsfile, cfgfile)

@@ -63,7 +63,7 @@ dependencies:
   - python=3.7.0=hd21baee_1006
   - python-dateutil=2.8.1=py_0
   - python_abi=3.7=1_cp37m
-  - pytorch=1.2.0=py3.7_cuda10.0.130_cudnn7.6.2_0
+  - pytorch
   - pytz=2020.1=py_0
   - pywavelets=1.1.1=py37h7b6447c_2
   - pyyaml=5.3.1=py37h7b6447c_1

@@ -102,7 +102,7 @@ def valid(datacfg, modelcfg, weightfile):
 
     # Specify model, load pretrained weights, pass to GPU and set the module in evaluation mode
     model = Darknet(modelcfg, distiling=distiling)
-    model.print_network()
+    # model.print_network()
     model.load_weights(weightfile)
     model.cuda()
     model.eval()
@@ -151,6 +151,9 @@ def valid(datacfg, modelcfg, weightfile):
             # Evaluation
             # Iterate through all batch elements
             for box_pr, target in zip([all_boxes], [target[0]]):
+                # print('box pred', box_pr)
+                # print('target', target)
+
                 # For each image, get all the targets (for multiple object pose estimation, there might be more than 1 target per image)
                 truths = target.view(-1, num_keypoints*2+3)
                 # Get how many objects are present in the scene
@@ -201,17 +204,17 @@ def valid(datacfg, modelcfg, weightfile):
                     pixel_dist   = np.mean(norm)
                     errs_2d.append(pixel_dist)
 
-                    # if visualize:
-                    #     # Visualize
-                    #     plt.xlim((0, im_width))
-                    #     plt.ylim((0, im_height))
-                    #     plt.imshow(resize(img, (im_height, im_width)))
-                    #     # Projections
-                    #     for edge in edges_corners:
-                    #         plt.plot(proj_corners_gt[edge, 0], proj_corners_gt[edge, 1], color='g', linewidth=3.0)
-                    #         plt.plot(proj_corners_pr[edge, 0], proj_corners_pr[edge, 1], color='b', linewidth=3.0)
-                    #     plt.gca().invert_yaxis()
-                    #     plt.show()
+                    if visualize:
+                        # Visualize
+                        plt.xlim((0, im_width))
+                        plt.ylim((0, im_height))
+                        plt.imshow(resize(img, (im_height, im_width)))
+                        # Projections
+                        for edge in edges_corners:
+                            plt.plot(proj_corners_gt[edge, 0], proj_corners_gt[edge, 1], color='g', linewidth=2.0)
+                            plt.plot(proj_corners_pr[edge, 0], proj_corners_pr[edge, 1], color='r', linewidth=1.0)
+                        plt.gca().invert_yaxis()
+                        plt.show()
 
                     # Compute 3D distances
                     transform_3d_gt   = compute_transformation(vertices, Rt_gt)
@@ -233,12 +236,12 @@ def valid(datacfg, modelcfg, weightfile):
                         preds_rot.append(R_pr)
                         gts_rot.append(R_gt)
 
-                        np.savetxt(backupdir + '/test/gt/R_' + valid_files[count][-8:-3] + 'txt', np.array(R_gt, dtype='float32'))
-                        np.savetxt(backupdir + '/test/gt/t_' + valid_files[count][-8:-3] + 'txt', np.array(t_gt, dtype='float32'))
-                        np.savetxt(backupdir + '/test/pr/R_' + valid_files[count][-8:-3] + 'txt', np.array(R_pr, dtype='float32'))
-                        np.savetxt(backupdir + '/test/pr/t_' + valid_files[count][-8:-3] + 'txt', np.array(t_pr, dtype='float32'))
-                        np.savetxt(backupdir + '/test/gt/corners_' + valid_files[count][-8:-3] + 'txt', np.array(corners2D_gt, dtype='float32'))
-                        np.savetxt(backupdir + '/test/pr/corners_' + valid_files[count][-8:-3] + 'txt', np.array(corners2D_pr, dtype='float32'))
+                        # np.savetxt(backupdir + '/test/gt/R_' + valid_files[count][-8:-3] + 'txt', np.array(R_gt, dtype='float32'))
+                        # np.savetxt(backupdir + '/test/gt/t_' + valid_files[count][-8:-3] + 'txt', np.array(t_gt, dtype='float32'))
+                        # np.savetxt(backupdir + '/test/pr/R_' + valid_files[count][-8:-3] + 'txt', np.array(R_pr, dtype='float32'))
+                        # np.savetxt(backupdir + '/test/pr/t_' + valid_files[count][-8:-3] + 'txt', np.array(t_pr, dtype='float32'))
+                        # np.savetxt(backupdir + '/test/gt/corners_' + valid_files[count][-8:-3] + 'txt', np.array(corners2D_gt, dtype='float32'))
+                        # np.savetxt(backupdir + '/test/pr/corners_' + valid_files[count][-8:-3] + 'txt', np.array(corners2D_pr, dtype='float32'))
 
 
             t5 = time.time()
@@ -322,8 +325,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SingleShotPose')
     parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiri-test.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
-    # parser.add_argument('--weightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
-    parser.add_argument('--weightfile', type=str, default='backup/txonigiri/model.weights') # txonigiri trained weight
+    parser.add_argument('--weightfile', type=str, default='backup/txonigiri/modelv2.3.weights') # txonigiri trained weight
     parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
