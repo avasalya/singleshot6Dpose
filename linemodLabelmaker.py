@@ -1,4 +1,4 @@
-""" convert pose from ndds JSON to Linemod YML format """
+""" convert pose from ndds JSON to Linemod .txt format """
 
 import os
 import sys
