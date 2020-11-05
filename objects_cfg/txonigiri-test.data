@@ -1,8 +1,7 @@
-train  = /media/ash/SSD/Odaiba/dataset/linemod-onigiri/txonigiri/data/01/train.txt
-valid  = /media/ash/SSD/Odaiba/dataset/linemod-onigiri/txonigiri/data/01/test.txt
-valid2  = /home/ash/yolact/data/coco/test.txt
-mesh = /media/ash/SSD/Odaiba/dataset/linemod-onigiri/txonigiri/models/obj_01.ply
-tr_range = txonigiri/data/01/training_range.txt
+train  = /home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/train.txt
+valid  = /home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/test.txt
+mesh = /home/ash/DenseFusion/datasets/txonigiri/models/obj_01.ply
+tr_range = /home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/train.txt
 backup = backup/txonigiri
 name = txonigiri
 diam = 0.121

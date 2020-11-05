@@ -63,7 +63,7 @@ class listDataset(Dataset):
         imgpath = self.lines[index].rstrip()
         # imgpath = 'txonigiri/data/01/JPEGImages/' + imgpath + '.png' #training
         # imgpath = '/media/ash/SSD/Odaiba/dataset/linemod-onigiri/txonigiri/data/01/JPEGImages/' + imgpath + '.png' #testing
-        imgpath = '/home/ash/yolact/data/coco/JPEGImages/' + imgpath + '.jpg'
+        imgpath = '/home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/rgb/' + imgpath + '.png'
 
         # Decide which size you are going to resize the image depending on the epoch (10, 20, etc.)
         if self.train and index % self.batch_size== 0:
@@ -116,7 +116,7 @@ class listDataset(Dataset):
                 img = img.resize(self.shape)
 
             # Read the validation labels, allow upto 50 ground-truth objects in an image
-            labpath = imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+            labpath = imgpath.replace('images', 'labels').replace('rgb', 'labels').replace('.png', '.txt').replace('.png','.txt')
             num_labels = 2*self.num_keypoints+3 # +2 for ground-truth of width/height , +1 for class label
             label = torch.zeros(self.max_num_gt*num_labels)
             if os.path.getsize(labpath):

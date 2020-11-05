@@ -48,7 +48,8 @@ def valid(datacfg, modelcfg, weightfile):
     v0           = float(data_options['v0'])
     im_width     = int(data_options['width'])
     im_height    = int(data_options['height'])
-    path = '/home/ash/yolact/data/coco/JPEGImages/'
+    # path = '/home/ash/yolact/data/coco/JPEGImages/'
+    path = '/home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/rgb/'
 
     # Parameters
     seed = int(time.time())

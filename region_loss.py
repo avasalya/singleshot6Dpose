@@ -17,9 +17,9 @@ def build_targets(pred_corners, target, num_keypoints, num_anchors, num_classes,
     tys = list()
     for i in range(num_keypoints):
         txs.append(torch.zeros(nB, nA, nH, nW))
-        tys.append(torch.zeros(nB, nA, nH, nW)) 
+        tys.append(torch.zeros(nB, nA, nH, nW))
     tconf = torch.zeros(nB, nA, nH, nW)
-    tcls  = torch.zeros(nB, nA, nH, nW) 
+    tcls  = torch.zeros(nB, nA, nH, nW)
 
     num_labels = 2 * num_keypoints + 3 # +2 for width, height and +1 for class within label files
     nAnchors = nA*nH*nW
@@ -36,9 +36,15 @@ def build_targets(pred_corners, target, num_keypoints, num_anchors, num_classes,
                 g.append(target[b][t*num_labels+2*i+2])
 
             cur_gt_corners = torch.FloatTensor(g).repeat(nAnchors,1).t() # 16 x nAnchors
-            cur_confs  = torch.max(cur_confs, corner_confidences(cur_pred_corners, cur_gt_corners)).view_as(conf_mask[b]) # some irrelevant areas are filtered, in the same grid multiple anchor boxes might exceed the threshold
-        conf_mask[b][cur_confs>sil_thresh] = 0
 
+            # cur_confs  = torch.max(cur_confs, corner_confidences(cur_pred_corners, cur_gt_corners))
+            # https://github.com/microsoft/singleshotpose/issues/88#issuecomment-489671646
+            # some irrelevant areas are filtered, in the same grid multiple anchor boxes might exceed the threshold
+            cur_confs  = torch.max(cur_confs, corner_confidences(cur_pred_corners, cur_gt_corners)).view_as(conf_mask[b])
+        if (len(cur_confs.shape) == 1 ):
+            cur_confs = torch.zeros(nAnchors).view_as(conf_mask[b])
+
+    conf_mask[b][cur_confs>sil_thresh] = 0
 
     nGT = 0
     nCorrect = 0
@@ -61,22 +67,22 @@ def build_targets(pred_corners, target, num_keypoints, num_anchors, num_classes,
             # Update masks
             best_n = 0 # 1 anchor box
             pred_box = pred_corners[b*nAnchors+best_n*nPixels+gj0*nW+gi0]
-            conf = corner_confidence(gt_box, pred_box) 
+            conf = corner_confidence(gt_box, pred_box)
             coord_mask[b][best_n][gj0][gi0] = 1
             cls_mask[b][best_n][gj0][gi0]   = 1
             conf_mask[b][best_n][gj0][gi0]  = object_scale
             # Update targets
             for i in range(num_keypoints):
                 txs[i][b][best_n][gj0][gi0] = gx[i]- gi0
-                tys[i][b][best_n][gj0][gi0] = gy[i]- gj0   
+                tys[i][b][best_n][gj0][gi0] = gy[i]- gj0
             tconf[b][best_n][gj0][gi0]      = conf
             tcls[b][best_n][gj0][gi0]       = target[b][t*num_labels]
             # Update recall during training
-            if conf > 0.5: 
+            if conf > 0.5:
                 nCorrect = nCorrect + 1
 
     return nGT, nCorrect, coord_mask, conf_mask, cls_mask, txs, tys, tconf, tcls
-           
+
 class RegionLoss(nn.Module):
     def __init__(self, num_keypoints=9, num_classes=1, anchors=[], num_anchors=1, pretrain_num_epochs=15):
         # Define the loss layer
@@ -140,7 +146,7 @@ class RegionLoss(nn.Module):
         coord_mask = Variable(coord_mask.cuda())
         conf_mask  = Variable(conf_mask.cuda().sqrt())
         cls_mask   = Variable(cls_mask.view(-1, 1).repeat(1,nC).cuda())
-        cls        = cls[cls_mask].view(-1, nC)  
+        cls        = cls[cls_mask].view(-1, nC)
         t3 = time.time()
 
         # Create loss
@@ -158,7 +164,7 @@ class RegionLoss(nn.Module):
         else:
             # pretrain initially without confidence loss
             # once the coordinate predictions get better, start training for confidence as well
-            loss  = loss_x + loss_y 
+            loss  = loss_x + loss_y
 
         t4 = time.time()
 
@@ -171,7 +177,7 @@ class RegionLoss(nn.Module):
             print('             total : %f' % (t4 - t0))
 
         print('%d: nGT %d, recall %d, proposals %d, loss: x %f, y %f, conf %f, total %f' % (self.seen, nGT, nCorrect, nProposals, loss_x.data.item(), loss_y.data.item(), loss_conf.data.item(), loss.data.item()))
-        
+
         return loss
 
 
@@ -242,7 +248,7 @@ class DistiledRegionLoss(nn.Module):
         coord_mask = Variable(coord_mask.cuda())
         conf_mask  = Variable(conf_mask.cuda().sqrt())
         cls_mask   = Variable(cls_mask.view(-1, 1).repeat(1,nC).cuda())
-        cls        = cls[cls_mask].view(-1, nC)  
+        cls        = cls[cls_mask].view(-1, nC)
         t3 = time.time()
 
         # Create loss
@@ -260,7 +266,7 @@ class DistiledRegionLoss(nn.Module):
         else:
             # pretrain initially without confidence loss
             # once the coordinate predictions get better, start training for confidence as well
-            loss  = loss_x + loss_y 
+            loss  = loss_x + loss_y
 
         t4 = time.time()
 
@@ -273,5 +279,5 @@ class DistiledRegionLoss(nn.Module):
             print('             total : %f' % (t4 - t0))
 
         print('%d: nGT %d, recall %d, proposals %d, loss: x %f, y %f, conf %f, total %f' % (self.seen, nGT, nCorrect, nProposals, loss_x.data.item(), loss_y.data.item(), loss_conf.data.item(), loss.data.item()))
-        
+
         return loss

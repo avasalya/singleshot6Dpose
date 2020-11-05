@@ -134,10 +134,10 @@ def change_background(img, mask, bg):
     return out
 
 def load_data_detection(imgpath, shape, jitter, hue, saturation, exposure, bgpath, num_keypoints, max_num_gt):
-    labpath = imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+    labpath = imgpath.replace('images', 'labels').replace('rgb', 'labels').replace('.png', '.txt')#.replace('.png','.txt')
     # print('imgpath', imgpath)
     # maskpath = imgpath.replace('JPEGImages', 'mask').replace('/00', '/').replace('.jpg', '.png')
-    maskpath = imgpath.replace('JPEGImages', 'mask').replace('.jpg', '.png')
+    maskpath = imgpath.replace('rgb', 'mask')#.replace('.jpg', '.png')
     # print('maskpath', maskpath)
 
     ## data augmentation
