@@ -35,6 +35,8 @@ def valid(datacfg, modelcfg, weightfile):
     # Parse configuration files
     data_options = read_data_cfg(datacfg)
     valid_images = data_options['valid']
+    dataDir      = data_options['dataDir']
+    filetype     = data_options['rgbfileType']
     meshname     = data_options['mesh']
     backupdir    = data_options['backup']
     name         = data_options['name']
@@ -53,9 +55,9 @@ def valid(datacfg, modelcfg, weightfile):
     seed = int(time.time())
     os.environ['CUDA_VISIBLE_DEVICES'] = gpus
     torch.cuda.manual_seed(seed)
-    save            = True
+    save            = False
     testtime        = True
-    visualize       = True
+    visualize       = False
     num_classes     = 1
     testing_samples = 0.0
     edges_corners = [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3], [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]]
@@ -95,6 +97,7 @@ def valid(datacfg, modelcfg, weightfile):
     intrinsic_calibration = get_camera_intrinsic(u0, v0, fx, fy)
 
     # Get validation file names
+    valid_images = os.path.join(dataDir + 'test.txt')
     with open(valid_images) as fp:
         print("getting validation files")
         tmp_files = fp.readlines()
@@ -112,7 +115,7 @@ def valid(datacfg, modelcfg, weightfile):
     num_labels    = num_keypoints * 2 + 3
 
     # Get the parser for the test dataset
-    valid_dataset = dataset.listDataset(valid_images,
+    valid_dataset = dataset.listDataset(dataDir, filetype,
                                         shape=(test_width, test_height),
                                         shuffle=False,
                                         transform=transforms.Compose([transforms.ToTensor(),]))
@@ -325,7 +328,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SingleShotPose')
     parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiri-test.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
-    parser.add_argument('--weightfile', type=str, default='backup/txonigiri/modelv3.1.weights') # txonigiri trained weight
+    parser.add_argument('--weightfile', type=str, default='backup/txonigiri/modelv4.3.weights') # txonigiri trained weight #v3.2(95.24%) < v4.1(95.87%) < v4.2(97.14%) == v4.3
     parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not

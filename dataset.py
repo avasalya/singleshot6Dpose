@@ -13,7 +13,7 @@ from utils import read_truths_args, read_truths, get_all_files
 
 class listDataset(Dataset):
 
-    def __init__(self, root, shape=None, shuffle=True, transform=None, target_transform=None, train=False, seen=0, batch_size=64, num_workers=4, cell_size=32, bg_file_names=None, num_keypoints=9, max_num_gt=50):
+    def __init__(self, root, filetype, shape=None, shuffle=True, transform=None, target_transform=None, train=False, seen=0, batch_size=64, num_workers=4, cell_size=32, bg_file_names=None, num_keypoints=9, max_num_gt=50):
 
         # root             : list of training or test images
         # shape            : shape of the image input to the network
@@ -27,8 +27,15 @@ class listDataset(Dataset):
         # bg_file_names    : the filenames for images from which you assign random backgrounds
 
         # read the the list of dataset images
-        with open(root, 'r') as file:
-            self.lines = file.readlines()
+        self.dataDir = root
+        self.rgbfileType = filetype
+
+        if train:
+            with open(os.path.join(self.dataDir, 'train.txt'), 'r') as file:
+                self.lines = file.readlines()
+        else:
+            with open(os.path.join(self.dataDir, 'test.txt'), 'r') as file:
+                self.lines = file.readlines()
 
         # Shuffle
         if shuffle:
@@ -60,10 +67,10 @@ class listDataset(Dataset):
         assert index <= len(self), 'index range error'
 
         # Get the image path
-        imgpath = self.lines[index].rstrip()
-        # imgpath = 'txonigiri/data/01/JPEGImages/' + imgpath + '.png' #training
-        # imgpath = '/media/ash/SSD/Odaiba/dataset/linemod-onigiri/txonigiri/data/01/JPEGImages/' + imgpath + '.png' #testing
-        imgpath = '/home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/rgb/' + imgpath + '.png'
+        imgindex = self.lines[index].rstrip()
+        # print('imgindex', imgindex)
+        imgpath = os.path.join(self.dataDir, 'rgb', str(imgindex) + self.rgbfileType)
+        # print('imgpath', imgpath)
 
         # Decide which size you are going to resize the image depending on the epoch (10, 20, etc.)
         if self.train and index % self.batch_size== 0:
@@ -116,7 +123,9 @@ class listDataset(Dataset):
                 img = img.resize(self.shape)
 
             # Read the validation labels, allow upto 50 ground-truth objects in an image
-            labpath = imgpath.replace('images', 'labels').replace('rgb', 'labels').replace('.png', '.txt').replace('.png','.txt')
+            labpath = imgpath.replace('rgb', 'labels').replace(self.rgbfileType,'.txt')
+            # print('labelpath', labpath)
+
             num_labels = 2*self.num_keypoints+3 # +2 for ground-truth of width/height , +1 for class label
             label = torch.zeros(self.max_num_gt*num_labels)
             if os.path.getsize(labpath):

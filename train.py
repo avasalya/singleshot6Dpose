@@ -56,14 +56,14 @@ def train(epoch):
 
     # Get the dataloader for training dataset
     train_loader = torch.utils.data.DataLoader(dataset.listDataset(trainlist,
-                                                                   shape=(init_width, init_height),
-                                                            	   shuffle=True,
-                                                            	   transform=transforms.Compose([transforms.ToTensor(),]),
-                                                            	   train=True,
-                                                            	   seen=model.seen,
-                                                            	   batch_size=batch_size,
-                                                            	   num_workers=num_workers,
-                                                                   bg_file_names=bg_file_names),
+                                                                shape=(init_width, init_height),
+                                                                shuffle=True,
+                                                                transform=transforms.Compose([transforms.ToTensor(),]),
+                                                                train=True,
+                                                                seen=model.seen,
+                                                                batch_size=batch_size,
+                                                                num_workers=num_workers,
+                                                                bg_file_names=bg_file_names),
                                                 batch_size=batch_size, shuffle=False, **kwargs)
 
     # TRAINING
@@ -289,6 +289,7 @@ if __name__ == "__main__":
     parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiri.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
+    parser.add_argument('--weightfile', type=str, default='backup/txonigiri/model.weights') # continue from this weights
     parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
@@ -299,6 +300,7 @@ if __name__ == "__main__":
     backupdir           = args.backupdir
     pretrain_num_epochs = args.pretrain_num_epochs
     backupdir           = args.backupdir
+    weightfile          = args.weightfile
     distiling           = bool(args.distiled)
 
     if distiling:
@@ -366,8 +368,10 @@ if __name__ == "__main__":
 
     # Model settings
     # model.load_weights(weightfile)
+    # model.load_weights_until_last(weightfile)
+    model.load_weights_until_last(initweightfile) # original
 
-    model.load_weights_until_last(initweightfile)
+
     model.print_network()
     model.seen = 0
     region_loss.iter  = model.iter
@@ -400,10 +404,10 @@ if __name__ == "__main__":
 
     # Get the dataloader for test data
     test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist,
-    															  shape=(test_width, test_height),
-                                                                  shuffle=False,
-                                                                  transform=transforms.Compose([transforms.ToTensor(),]),
-                                                                  train=False),
+                                                                shape=(test_width, test_height),
+                                                                shuffle=False,
+                                                                transform=transforms.Compose([transforms.ToTensor(),]),
+                                                                train=False),
                                              batch_size=1, shuffle=False, **kwargs)
 
     # Pass the model to GPU

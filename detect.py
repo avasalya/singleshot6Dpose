@@ -69,9 +69,11 @@ if __name__ == '__main__':
     #     print(' python detect.py input_folder weightfile cfgfile')
     #     print("Example:")
     #     print("python detect.py LINEMOD/ape/JPEGImages cfg/yolo-pose.cfg backup/ape/model_backup.weights")
-    
-    
-    input_path  =  '/home/ash/yolact/data/coco/JPEGImages'
+
+
+    # datacfg = 'objects_cfg/txonigiri-test.data'
+
+    input_path  =  '/home/ash/yolact/data/coco/rgb'
     cfgfile     =  'models_cfg/tekin/yolo-pose.cfg'
-    weightsfile =  'backup/txonigiri/modelv2.3.weights'
+    weightsfile =  'backup/txonigiri/modelv4.1.weights'
     detect(input_path, weightsfile, cfgfile)
