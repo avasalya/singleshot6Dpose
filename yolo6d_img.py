@@ -1,7 +1,5 @@
-""" initial code for still images adapted from
-https://github.com/SBPL-Cruz/singleshotpose/blob/fat_dataset/valid.py
-"""
-""" TO Test
+""" initial code for still images adapted from valid.py """
+""" TO Test batch of still images
 $ create conda environment -- similar to yolact environment
 $ conda activate yolo6d
 $ python3 fileName.py
