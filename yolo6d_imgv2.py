@@ -130,18 +130,20 @@ def valid(datacfg, modelcfg, weightfile):
     if visualize:
         # Projections
         for corner in allBoxes:
-            img = cv2.line(img, tuple(corner[0]), tuple(corner[1]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[0]), tuple(corner[2]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[0]), tuple(corner[4]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[1]), tuple(corner[3]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[1]), tuple(corner[5]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[2]), tuple(corner[3]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[2]), tuple(corner[6]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[3]), tuple(corner[7]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[4]), tuple(corner[5]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[4]), tuple(corner[6]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[5]), tuple(corner[7]), (0,0,255), 1)
-            img = cv2.line(img, tuple(corner[6]), tuple(corner[7]), (0,0,255), 1)
+            color     = (0,0,255)
+            linewidth = 2
+            img = cv2.line(img, tuple(corner[0]), tuple(corner[1]), color, linewidth)
+            img = cv2.line(img, tuple(corner[0]), tuple(corner[2]), color, linewidth)
+            img = cv2.line(img, tuple(corner[0]), tuple(corner[4]), color, linewidth)
+            img = cv2.line(img, tuple(corner[1]), tuple(corner[3]), color, linewidth)
+            img = cv2.line(img, tuple(corner[1]), tuple(corner[5]), color, linewidth)
+            img = cv2.line(img, tuple(corner[2]), tuple(corner[3]), color, linewidth)
+            img = cv2.line(img, tuple(corner[2]), tuple(corner[6]), color, linewidth)
+            img = cv2.line(img, tuple(corner[3]), tuple(corner[7]), color, linewidth)
+            img = cv2.line(img, tuple(corner[4]), tuple(corner[5]), color, linewidth)
+            img = cv2.line(img, tuple(corner[4]), tuple(corner[6]), color, linewidth)
+            img = cv2.line(img, tuple(corner[5]), tuple(corner[7]), color, linewidth)
+            img = cv2.line(img, tuple(corner[6]), tuple(corner[7]), color, linewidth)
         cv2.imshow('yolo6d pose', img)
         key = cv2.waitKey(10000) & 0xFF
         if key == 27:
