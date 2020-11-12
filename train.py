@@ -333,7 +333,7 @@ if __name__ == "__main__":
     bg_file_names = get_all_files('VOCdevkit/VOC2012/JPEGImages')
 
     # Train parameters
-    max_epochs    = 500 # max_batches*batch_size/nsamples+1
+    max_epochs    = 1000 # max_batches*batch_size/nsamples+1
     num_keypoints = int(net_options['num_keypoints'])
 
     use_cuda      = True
@@ -359,7 +359,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     if use_cuda:
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        os.environ['CUDA_VISIBLE_DEVICES'] = "3,2" #gpus
+        os.environ['CUDA_VISIBLE_DEVICES'] = "0,1" #gpus
         torch.cuda.manual_seed(seed)
 
     # Specifiy the model and the loss

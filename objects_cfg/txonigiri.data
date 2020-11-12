@@ -1,11 +1,11 @@
-train  = txonigiri/data/01/train.txt
-valid  = txonigiri/data/01/test.txt
+tr_range = linemod-onigiri/txonigiri/data/02/training_range.txt
+train  = linemod-onigiri/txonigiri/data/02/train.txt
+valid  = linemod-onigiri/txonigiri/data/02/test.txt
+mesh = linemod-onigiri/txonigiri/models/obj_01.ply
 backup = backup/txonigiri
-mesh = txonigiri/models/obj_01.ply
-tr_range = txonigiri/data/01/training_range.txt
 name = txonigiri
 diam = 0.121
-gpus = 2,3
+gpus = 1,2
 width = 640
 height = 480
 fx = 605.286
