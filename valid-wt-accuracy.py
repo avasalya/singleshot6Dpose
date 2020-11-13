@@ -36,7 +36,7 @@ def valid(datacfg, modelcfg, weightfile):
     data_options = read_data_cfg(datacfg)
     valid_images = data_options['valid']
     dataDir      = data_options['dataDir']
-    filetype     = data_options['rgbfileType']
+    filetype     = '.png' #data_options['rgbfileType']
     meshname     = data_options['mesh']
     backupdir    = data_options['backup']
     name         = data_options['name']

@@ -1,7 +1,5 @@
-tr_range = linemod-onigiri/txonigiri/data/02/training_range.txt
-train  = linemod-onigiri/txonigiri/data/02/train.txt
-valid  = linemod-onigiri/txonigiri/data/02/test.txt
-mesh = linemod-onigiri/txonigiri/models/obj_01.ply
+dataDir = linemod/txonigiri/data/03/
+mesh = linemod/txonigiri/models/obj_01.ply
 backup = backup/txonigiri
 name = txonigiri
 diam = 0.121
