@@ -1,11 +1,5 @@
-rgbfileType = .png
-dataDir_  = /home/ash/yolact/data/coco/
-dataDir = /home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/
-
-train  = /home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/train.txt
-valid  = /home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/test.txt
+dataDir = /home/ash/RapidPoseLabels/out/
 mesh = /home/ash/DenseFusion/datasets/txonigiri/models/obj_01.ply
-tr_range = /home/ash/RapidPoseLabels/out_2020_11_04_17_30_43/train.txt
 backup = backup/txonigiri
 name = txonigiri
 diam = 0.121
