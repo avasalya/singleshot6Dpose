@@ -55,7 +55,7 @@ def train(epoch):
     t0 = time.time()
 
     # Get the dataloader for training dataset
-    train_loader = torch.utils.data.DataLoader(dataset.listDataset(trainlist,
+    train_loader = torch.utils.data.DataLoader(dataset.listDataset(dataDir,
                                                                 shape=(init_width, init_height),
                                                                 shuffle=True,
                                                                 transform=transforms.Compose([transforms.ToTensor(),]),
@@ -310,8 +310,7 @@ if __name__ == "__main__":
     # Parse configuration files
     data_options  = read_data_cfg(datacfg)
     net_options   = parse_cfg(modelcfg)[0]
-    trainlist     = data_options['train']
-    testlist      = data_options['valid']
+    dataDir       = data_options['dataDir']
     gpus          = data_options['gpus']
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
@@ -325,7 +324,7 @@ if __name__ == "__main__":
     learning_rate = float(net_options['learning_rate'])
     momentum      = float(net_options['momentum'])
     decay         = float(net_options['decay'])
-    nsamples      = file_lines(trainlist)
+    nsamples      = file_lines(os.path.join(dataDir, 'train.txt'))
     batch_size    = int(net_options['batch'])
     nbatches      = nsamples / batch_size
     steps         = [float(step)*nbatches for step in net_options['steps'].split(',')]
@@ -403,7 +402,7 @@ if __name__ == "__main__":
     kwargs = {'num_workers': 4, 'pin_memory': True} if use_cuda else {}
 
     # Get the dataloader for test data
-    test_loader = torch.utils.data.DataLoader(dataset.listDataset(testlist,
+    test_loader = torch.utils.data.DataLoader(dataset.listDataset(dataDir,
                                                                 shape=(test_width, test_height),
                                                                 shuffle=False,
                                                                 transform=transforms.Compose([transforms.ToTensor(),]),
