@@ -1,4 +1,3 @@
-
 """ TO TRAIN
 $ create conda environment -- similar to yolact environment
 $ python train.py
@@ -339,7 +338,7 @@ if __name__ == "__main__":
     seed          = int(time.time())
     eps           = 1e-5
     save_interval = 10 # epoches
-    dot_interval  = 70 # batches
+    dot_interval  = 50 # batches
     best_acc      = -1
 
     # Test parameters
@@ -435,7 +434,7 @@ if __name__ == "__main__":
             # TRAIN
             niter = train(epoch)
             # TEST and SAVE
-            if (epoch % 10 == 0) and (epoch is not 0):
+            if (epoch % save_interval == 0) and (epoch is not 0):
                 test(epoch, niter)
                 logging('save training stats to %s/costs.npz' % (backupdir))
                 np.savez(os.path.join(backupdir, "costs.npz"),
@@ -448,8 +447,10 @@ if __name__ == "__main__":
                 if (testing_accuracies[-1] > best_acc ):
                     best_acc = testing_accuracies[-1]
                     logging('best model so far!')
-                    logging('save weights to %s/model.weights' % (backupdir))
-                    model.save_weights('%s/model.weights' % (backupdir))
+                    # logging('save weights to %s/model.weights' % (backupdir))
+                    # model.save_weights('%s/model.weights' % (backupdir))
+                    logging('save weights to %s/model_%s.weights' % (backupdir, str(epoch)))
+                    model.save_weights('%s/model_%s.weights' % (backupdir, str(epoch)))
 
                     result_data = {
                         'model': modelcfg[23:-4],

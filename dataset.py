@@ -124,7 +124,7 @@ class listDataset(Dataset):
 
             # Read the validation labels, allow upto 50 ground-truth objects in an image
             labpath = imgpath.replace('rgb', 'labels').replace(self.rgbfileType,'.txt')
-            # print('labelpath', labpath)
+            print('testing', labpath)
 
             num_labels = 2*self.num_keypoints+3 # +2 for ground-truth of width/height , +1 for class label
             label = torch.zeros(self.max_num_gt*num_labels)

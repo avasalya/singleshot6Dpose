@@ -1,4 +1,4 @@
-dataDir = linemod/txonigiri/data/03/
+dataDir = linemod/txonigiri/data/04/
 mesh = linemod/txonigiri/models/obj_01.ply
 backup = backup/txonigiri
 name = txonigiri
