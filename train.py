@@ -288,7 +288,7 @@ if __name__ == "__main__":
     parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiri.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
-    parser.add_argument('--weightfile', type=str, default='backup/txonigiri/model.weights') # continue from this weights
+    parser.add_argument('--lastweightfile', type=str, default='backup/txonigiri/model_150.weights') # continue from this weights
     parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     backupdir           = args.backupdir
     pretrain_num_epochs = args.pretrain_num_epochs
     backupdir           = args.backupdir
-    weightfile          = args.weightfile
+    weightfile          = args.lastweightfile
     distiling           = bool(args.distiled)
 
     if distiling:
@@ -366,8 +366,8 @@ if __name__ == "__main__":
 
     # Model settings
     # model.load_weights(weightfile)
-    # model.load_weights_until_last(weightfile)
-    model.load_weights_until_last(initweightfile) # original
+    model.load_weights_until_last(weightfile) #continuefromthisweight
+    # model.load_weights_until_last(initweightfile) # original
 
 
     model.print_network()
@@ -377,7 +377,7 @@ if __name__ == "__main__":
     processed_batches = model.seen//batch_size
     init_width        = model.width
     init_height       = model.height
-    init_epoch        = model.seen//nsamples
+    init_epoch        = 151 #model.seen//nsamples
 
     # Variable to save
     training_iters          = []
