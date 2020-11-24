@@ -1,4 +1,4 @@
-dataDir = /home/ash/RapidPoseLabels/out/
+dataDir = /home/ash/RapidPoseLabels/outv1.1/
 mesh = /home/ash/DenseFusion/datasets/txonigiri/models/obj_01.ply
 backup = backup/txonigiri
 name = txonigiri
