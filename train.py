@@ -285,7 +285,7 @@ if __name__ == "__main__":
 
     # Training settings
     parser = argparse.ArgumentParser(description='SingleShotPose')
-    parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiri.data') # data config
+    parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiritx.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
     parser.add_argument('--lastweightfile', type=str, default='backup/txonigiri/model_150.weights') # continue from this weights
@@ -366,8 +366,8 @@ if __name__ == "__main__":
 
     # Model settings
     # model.load_weights(weightfile)
-    model.load_weights_until_last(weightfile) #continuefromthisweight
-    # model.load_weights_until_last(initweightfile) # original
+    # model.load_weights_until_last(weightfile) #continuefromthisweight
+    model.load_weights_until_last(initweightfile) # original
 
 
     model.print_network()
@@ -377,7 +377,7 @@ if __name__ == "__main__":
     processed_batches = model.seen//batch_size
     init_width        = model.width
     init_height       = model.height
-    init_epoch        = 151 #model.seen//nsamples
+    init_epoch        = model.seen//nsamples
 
     # Variable to save
     training_iters          = []
