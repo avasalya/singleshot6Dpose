@@ -3,6 +3,7 @@
 """(dfros3) python filename.py """
 
 import os
+import cv2
 import time
 import warnings
 import argparse
@@ -13,7 +14,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from MeshPly import MeshPly
-from skimage.transform import resize
 
 import torch
 from torch.autograd import Variable
@@ -34,19 +34,43 @@ def truths_length(truths, max_num_gt=50):
         if truths[i][1] == 0:
             return i
 
-def valid(datacfg, modelcfg, weightfile):
+def draw(img, axesPoint, cuboid, color):
+        img = cv2.line(img, tuple(axesPoint[3].ravel()),
+                            tuple(axesPoint[0].ravel()), (255,0,0), 2)
+        img = cv2.line(img, tuple(axesPoint[3].ravel()),
+                            tuple(axesPoint[1].ravel()), (0,255,0), 2)
+        img = cv2.line(img, tuple(axesPoint[3].ravel()),
+                            tuple(axesPoint[2].ravel()), (0,0,255), 2)
+        cv2.circle(img, tuple(axesPoint[3].ravel()), 5, (0, 255, 255), -1)
+
+        cv2.line(img, cuboid[0], cuboid[1], color, 2)
+        cv2.line(img, cuboid[0], cuboid[2], color, 2)
+        cv2.line(img, cuboid[0], cuboid[4], color, 2)
+        cv2.line(img, cuboid[1], cuboid[3], color, 2)
+        cv2.line(img, cuboid[1], cuboid[5], color, 2)
+        cv2.line(img, cuboid[2], cuboid[3], color, 2)
+        cv2.line(img, cuboid[2], cuboid[6], color, 2)
+        cv2.line(img, cuboid[3], cuboid[7], color, 2)
+        cv2.line(img, cuboid[4], cuboid[5], color, 2)
+        cv2.line(img, cuboid[4], cuboid[6], color, 2)
+        cv2.line(img, cuboid[5], cuboid[7], color, 2)
+        cv2.line(img, cuboid[6], cuboid[7], color, 2)
+
+
+def valid(datacfg, modelcfg):
 
     # Parse configuration files
     data_options = read_data_cfg(datacfg)
     dataDir      = data_options['dataDir']
+    weightfile   = data_options['weightfile']
     meshname     = data_options['mesh']
     backupdir    = data_options['backup']
     name         = data_options['name']
     gpus         = data_options['gpus']
     fx           = float(data_options['fx'])
     fy           = float(data_options['fy'])
-    u0           = float(data_options['u0'])
-    v0           = float(data_options['v0'])
+    cx           = float(data_options['cx'])
+    cy           = float(data_options['cy'])
     im_width     = int(data_options['width'])
     im_height    = int(data_options['height'])
 
@@ -59,7 +83,7 @@ def valid(datacfg, modelcfg, weightfile):
     torch.cuda.manual_seed(seed)
     save            = False
     testtime        = True
-    visualize       = False
+    visualize       = True
     num_classes     = 1
     testing_samples = 0.0
     edges_corners = [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3], [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]]
@@ -96,7 +120,7 @@ def valid(datacfg, modelcfg, weightfile):
         diam  = calc_pts_diameter(np.array(mesh.vertices)) #this takes too much time
 
     # Read intrinsic camera parameters
-    intrinsic_calibration = get_camera_intrinsic(u0, v0, fx, fy)
+    intrinsic_calibration = get_camera_intrinsic(cx, cy, fx, fy)
 
     # Get validation file names
     valid_images = os.path.join(dataDir + 'test.txt')
@@ -134,9 +158,13 @@ def valid(datacfg, modelcfg, weightfile):
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(test_loader):
 
-            # Images
+            # Images tensor
             img = data[0, :, :, :]
+
+            # convert image tensor to numpy ndarray
             img = img.numpy().squeeze()
+
+            # transpose image
             img = np.transpose(img, (1, 2, 0))
 
             t1 = time.time()
@@ -209,17 +237,38 @@ def valid(datacfg, modelcfg, weightfile):
                     pixel_dist   = np.mean(norm)
                     errs_2d.append(pixel_dist)
 
+                    # Visualize
                     if visualize:
-                        # Visualize
-                        plt.xlim((0, im_width))
-                        plt.ylim((0, im_height))
-                        plt.imshow(resize(img, (im_height, im_width)))
-                        # Projections
-                        for edge in edges_corners:
-                            plt.plot(proj_corners_gt[edge, 0], proj_corners_gt[edge, 1], color='g', linewidth=2.0)
-                            plt.plot(proj_corners_pr[edge, 0], proj_corners_pr[edge, 1], color='r', linewidth=1.0)
-                        plt.gca().invert_yaxis()
-                        plt.show()
+                        img = cv2.resize(img, dsize=(640, 480), interpolation=cv2.INTER_CUBIC)
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+                        # draw axes & cuboid Projections
+                        points = np.float32([[.1, 0, 0], [0, .1, 0], [0, 0, .1], [0, 0, 0]]).reshape(-1, 3)
+                        axesPoints_gt = cv2.projectPoints(
+                                                    points,
+                                                    cv2.Rodrigues(R_gt)[0],
+                                                    t_gt,
+                                                    intrinsic_calibration,
+                                                    None)[0]
+                        cuboid_gt  = [tuple(map(int, point)) for point in proj_corners_gt]
+                        draw(img, axesPoints_gt, cuboid_gt, (0,255,0))
+
+                        axesPoints_pr = cv2.projectPoints(
+                                                    points,
+                                                    cv2.Rodrigues(R_pr)[0],
+                                                    t_pr,
+                                                    intrinsic_calibration,
+                                                    None)[0]
+                        cuboid_pr  = [tuple(map(int, point)) for point in proj_corners_pr]
+                        draw(img, axesPoints_pr, cuboid_pr, (0,0,255))
+
+                        cv2.imshow('validate image', img)
+                        key = cv2.waitKey(1000) & 0xFF
+                        if key == 27:
+                            print('stopping, keyboard interrupt')
+                            os._exit(0)
+
+
 
                     # Compute 3D distances
                     transform_3d_gt   = compute_transformation(vertices, Rt_gt)
@@ -330,20 +379,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SingleShotPose')
     parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiri-test.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
-    # txonigiri trained weight #v3.2(95.24%) < v4.1(95.87%) < v5.1(96.75%) < v4.2(97.14%) == v4.3
-    parser.add_argument('--weightfile', type=str, default='backup/txonigiri/model_920.weights')
     parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
-    parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
     args                = parser.parse_args()
     datacfg             = args.datacfg
     modelcfg            = args.modelcfg
-    weightfile          = args.weightfile
     backupdir           = args.backupdir
-    pretrain_num_epochs = args.pretrain_num_epochs
     distiling           = bool(args.distiled)
 
     print("configuration file loaded")
-    # outfile = 'txonigiri_test1_'
-    # valid(datacfg, modelcfg, weightfile, outfile)
-    valid(datacfg, modelcfg, weightfile)
+    valid(datacfg, modelcfg)
+
+    # txonigiri trained weight #v3.2(95.24%) < v4.1(95.87%) < v5.1(96.75%) < v4.2(97.14%) == v4.3

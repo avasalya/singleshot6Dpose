@@ -1,5 +1,6 @@
-dataDir = /home/ash/RapidPoseLabels/outv1.1/
-mesh = /home/ash/DenseFusion/datasets/txonigiri/models/obj_01.ply
+dataDir = /home/ash/RapidPoseLabels/outTxv1/
+mesh = models/txonigiri.ply
+weightfile = backup/txonigiri/modelv7.1.weights
 backup = backup/txonigiri
 name = txonigiri
 diam = 0.121
@@ -8,5 +9,5 @@ width = 640
 height = 480
 fx = 605.286
 fy = 605.699
-u0 = 320.075
-v0 = 247.877
+cx = 320.075
+cy = 247.877
