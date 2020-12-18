@@ -288,7 +288,7 @@ if __name__ == "__main__":
     parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiritx.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
-    parser.add_argument('--lastweightfile', type=str, default='backup/txonigiri/model_150.weights') # continue from this weights
+    parser.add_argument('--lastweightfile', type=str, default='backup/txonigiri/model_470.weights') # continue from this weights
     parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
@@ -337,7 +337,7 @@ if __name__ == "__main__":
     use_cuda      = True
     seed          = int(time.time())
     eps           = 1e-5
-    save_interval = 10 # epoches
+    save_interval = 5 # epoches
     dot_interval  = 50 # batches
     best_acc      = -1
 
@@ -357,7 +357,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     if use_cuda:
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        os.environ['CUDA_VISIBLE_DEVICES'] = "0,1" #gpus
+        os.environ['CUDA_VISIBLE_DEVICES'] = "1" #gpus
         torch.cuda.manual_seed(seed)
 
     # Specifiy the model and the loss
@@ -366,8 +366,8 @@ if __name__ == "__main__":
 
     # Model settings
     # model.load_weights(weightfile)
-    # model.load_weights_until_last(weightfile) #continuefromthisweight
-    model.load_weights_until_last(initweightfile) # original
+    model.load_weights_until_last(weightfile) #continuefromthisweight
+    # model.load_weights_until_last(initweightfile) # original
 
 
     model.print_network()
@@ -449,8 +449,8 @@ if __name__ == "__main__":
                     logging('best model so far!')
                     # logging('save weights to %s/model.weights' % (backupdir))
                     # model.save_weights('%s/model.weights' % (backupdir))
-                    logging('save weights to %s/model_%s.weights' % (backupdir, str(epoch)))
-                    model.save_weights('%s/model_%s.weights' % (backupdir, str(epoch)))
+                    logging('save weights to %s/model_%s_%s.weights' % (backupdir, str(epoch), str(best_acc)))
+                    model.save_weights('%s/model_%s_%s.weights' % (backupdir, str(epoch), str(best_acc)))
 
                     result_data = {
                         'model': modelcfg[23:-4],

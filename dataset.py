@@ -70,7 +70,8 @@ class listDataset(Dataset):
         imgindex = self.lines[index].rstrip()
         # print('imgindex', imgindex)
         imgpath = os.path.join(self.dataDir, 'rgb', str(imgindex) + self.rgbfileType)
-        print( 'imgpath', imgpath, end='\r')
+        if not self.train:
+            print( 'imgpath', imgpath, end='\r')
 
         # Decide which size you are going to resize the image depending on the epoch (10, 20, etc.)
         if self.train and index % self.batch_size== 0:
