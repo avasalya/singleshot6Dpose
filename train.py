@@ -285,10 +285,10 @@ if __name__ == "__main__":
 
     # Training settings
     parser = argparse.ArgumentParser(description='SingleShotPose')
-    parser.add_argument('--datacfg', type=str, default='objects_cfg/txonigiritx.data') # data config
+    parser.add_argument('--datacfg', type=str, default='objects_cfg/onigiri-tx.data') # data config
     parser.add_argument('--modelcfg', type=str, default='models_cfg/tekin/yolo-pose.cfg') # network config
     parser.add_argument('--initweightfile', type=str, default='cfg/darknet19_448.conv.23') # imagenet initialized weights
-    parser.add_argument('--lastweightfile', type=str, default='backup/txonigiri/model_25_80.38812090447479.weights') # continue from this weights
+    parser.add_argument('--lastweightfile', type=str, default='backup/txonigiri/model_105_80.70175202626457.weights') # continue from this weights
     parser.add_argument('--backupdir', type=str, default='backup/txonigiri') # model backup path
     parser.add_argument('--pretrain_num_epochs', type=int, default=15) # how many epoch to pretrain
     parser.add_argument('--distiled', type=int, default=0) # if the input model is distiled or not
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     backupdir           = args.backupdir
     pretrain_num_epochs = args.pretrain_num_epochs
     backupdir           = args.backupdir
-    weightfile          = args.lastweightfile
+    lastweightfile      = args.lastweightfile
     distiling           = bool(args.distiled)
 
     if distiling:
@@ -310,6 +310,7 @@ if __name__ == "__main__":
     data_options  = read_data_cfg(datacfg)
     net_options   = parse_cfg(modelcfg)[0]
     dataDir       = data_options['dataDir']
+    dataset_dir   = dataDir.split('/')[-2]
     gpus          = data_options['gpus']
     meshname      = data_options['mesh']
     num_workers   = int(data_options['num_workers'])
@@ -324,14 +325,14 @@ if __name__ == "__main__":
     momentum      = float(net_options['momentum'])
     decay         = float(net_options['decay'])
     nsamples      = file_lines(os.path.join(dataDir, 'train.txt'))
-    batch_size    = int(net_options['batch'])
     nbatches      = nsamples / batch_size
     steps         = [float(step)*nbatches for step in net_options['steps'].split(',')]
     scales        = [float(scale) for scale in net_options['scales'].split(',')]
     bg_file_names = get_all_files('VOCdevkit/VOC2012/JPEGImages')
 
     # Train parameters
-    max_epochs    = 1000 # max_batches*batch_size/nsamples+1
+    max_epochs    = round(max_batches*batch_size/nsamples+1)
+    print('max_epochs', max_epochs)
     num_keypoints = int(net_options['num_keypoints'])
 
     use_cuda      = True
@@ -357,7 +358,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     if use_cuda:
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        os.environ['CUDA_VISIBLE_DEVICES'] = "1" #gpus
+        os.environ['CUDA_VISIBLE_DEVICES'] = gpus
         torch.cuda.manual_seed(seed)
 
     # Specifiy the model and the loss
@@ -365,8 +366,8 @@ if __name__ == "__main__":
     region_loss = model.loss
 
     # Model settings
-    # model.load_weights(weightfile)
-    model.load_weights_until_last(weightfile) #continuefromthisweight
+    # model.load_weights(lastweightfile)
+    model.load_weights_until_last(lastweightfile) #continuefromthisweight
     # model.load_weights_until_last(initweightfile) # original
 
 
@@ -403,10 +404,10 @@ if __name__ == "__main__":
     # Get the dataloader for test data
     test_loader = torch.utils.data.DataLoader(dataset.listDataset(dataDir,
                                                                 shape=(test_width, test_height),
-                                                                shuffle=False,
+                                                                shuffle=True,
                                                                 transform=transforms.Compose([transforms.ToTensor(),]),
                                                                 train=False),
-                                             batch_size=1, shuffle=False, **kwargs)
+                                             batch_size=1, shuffle=True, **kwargs)
 
     # Pass the model to GPU
     if use_cuda:
@@ -436,8 +437,8 @@ if __name__ == "__main__":
             # TEST and SAVE
             if (epoch % save_interval == 0) and (epoch is not 0):
                 test(epoch, niter)
-                logging('save training stats to %s/costs.npz' % (backupdir))
-                np.savez(os.path.join(backupdir, "costs.npz"),
+                logging('save training stats to %s/costs_%s.npz' % (backupdir, dataset_dir))
+                np.savez(os.path.join(backupdir, "costs_%s.npz" %(dataset_dir)),
                     training_iters=training_iters,
                     training_losses=training_losses,
                     testing_iters=testing_iters,
@@ -449,8 +450,8 @@ if __name__ == "__main__":
                     logging('best model so far!')
                     # logging('save weights to %s/model.weights' % (backupdir))
                     # model.save_weights('%s/model.weights' % (backupdir))
-                    logging('save weights to %s/model_%s_%s.weights' % (backupdir, str(epoch), str(best_acc)))
-                    model.save_weights('%s/model_%s_%s.weights' % (backupdir, str(epoch), str(best_acc)))
+                    logging('save weights to %s/model_%s_%s_%s.weights' % (backupdir, dataset_dir, str(epoch), str(best_acc)))
+                    model.save_weights('%s/model_%s_%s_%s.weights' % (backupdir, dataset_dir, str(epoch), str(best_acc)))
 
                     result_data = {
                         'model': modelcfg[23:-4],
@@ -458,6 +459,8 @@ if __name__ == "__main__":
                         '2d_projection': testing_accuracies[-1],
                         '3d_transformation': testing_acc3d[-1],
                     }
+            if epoch == max_epochs-1:
+                print("finished training --- check save models %s" % (backupdir))
 
     csv_output_name = 'test_metrics_distilling.csv' if distiling else 'test_metrics.csv'
 

@@ -35,7 +35,7 @@ else:
     os.system('cls')
 
 distiling = 0
-datacfg = 'objects_cfg/txonigiri-test.data'
+datacfg = 'objects_cfg/onigiri-test.data'
 points = np.float32([[.1, 0, 0], [0, .1, 0], [0, 0, .1], [0, 0, 0]]).reshape(-1, 3)
 print("configuration file loaded")
 
