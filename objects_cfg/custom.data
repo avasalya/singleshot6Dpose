@@ -1,0 +1,12 @@
+dataDir = linemod/txonigiri/data/01/
+mesh = linemod/txonigiri/models/obj_01.ply
+backup = backup/txonigiri
+name = txonigiri
+diam = 0.121
+gpus = 1,2
+width = 640
+height = 480
+fx = 605.286
+fy = 605.699
+u0 = 320.075
+v0 = 247.877

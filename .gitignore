@@ -334,7 +334,7 @@ ASALocalRun/
 .mfractor/
 
 # Datasets
-LINEMOD/*
+LINEMOD/txonigiri/data/*
 VOCdevkit/*
 
 launch.json
